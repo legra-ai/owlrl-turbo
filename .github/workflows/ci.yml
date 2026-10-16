@@ -1,0 +1,148 @@
+name: Tests and wheels
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the tested alpha to PyPI
+        type: boolean
+        default: false
+  schedule:
+    - cron: '31 4 * * *'
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash {0}
+jobs:
+  prepare:
+    name: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      revision: ${{ steps.release.outputs.revision }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - id: release
+        run: python scripts/prepare_release.py
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+      - uses: astral-sh/setup-uv@v10.3.0
+      - name: Build wheel from the source archive
+        run: |
+          uv build --sdist --out-dir source-dist || exit 1
+          uv build --wheel --out-dir wheel-dist source-dist/*.tar.gz || exit 1
+          mkdir dist || exit 1
+          cp source-dist/* wheel-dist/* dist/ || exit 1
+      - run: uvx --from twine==7.0.0 twine check --strict dist/*
+      - run: python scripts/release_packages.py check-build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-packages
+          path: dist/*
+          if-no-files-found: error
+  verify:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+      - uses: astral-sh/setup-uv@v10.3.0
+      - run: uvx ruff check src tests scripts
+      - run: uvx ruff format --check src tests scripts
+  wheels:
+    needs: [prepare, build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-packages
+          path: dist
+      - run: python scripts/test_wheel.py
+  test:
+    name: test
+    needs: [prepare, verify, build, wheels]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all release checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        shell: python
+        run: |
+          import json, os
+          failures = [name for name, job in json.loads(os.environ['RESULTS']).items() if job['result'] != 'success']
+          if failures:
+              raise SystemExit(f'Required release checks failed: {failures}')
+
+  publish:
+    needs: [prepare, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.publish
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/owlrl-turbo/
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      RELEASE_REVISION: ${{ needs.prepare.outputs.revision }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python scripts/tag_release.py
+      - name: Create draft prerelease if absent
+        run: |
+          if gh release view "v$RELEASE_VERSION" >/dev/null 2>&1; then
+            printf 'Restoring existing release artifacts\n'
+          else
+            gh release create "v$RELEASE_VERSION" --verify-tag --title "v$RELEASE_VERSION" --notes-file docs/release-notes.md --draft --prerelease || exit 1
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - run: python scripts/release_packages.py stage
+      - id: pending
+        run: python scripts/release_packages.py filter
+      - if: steps.pending.outputs.missing == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pending-packages/
+      - run: python scripts/release_packages.py verify
+      - run: gh release edit "v$RELEASE_VERSION" --draft=false
