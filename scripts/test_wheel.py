@@ -5,6 +5,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from wheel_install import install_wheel
+
 root = Path(__file__).resolve().parents[1]
 wheels = list((root / "dist").glob("*.whl"))
 if len(wheels) != 1:
@@ -14,9 +16,7 @@ for version in ("3.11", "3.14"):
         environment = Path(directory) / "venv"
         subprocess.run(["uv", "venv", "--python", version, str(environment)], check=True)
         python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        subprocess.run(
-            ["uv", "pip", "install", "--python", str(python), str(wheels[0]) + "[test]"], check=True
-        )
+        install_wheel(python, wheels[0])
         subprocess.run(
             [
                 str(python),
