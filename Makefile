@@ -1,4 +1,5 @@
 PYTHON ?= 3.13
+
 .PHONY: dev check test build
 
 dev:
@@ -14,3 +15,7 @@ test:
 
 build:
 	uv build
+
+.PHONY: benchmark-companions
+benchmark-companions:
+	$(MAKE) -C ../pyshacl-turbo benchmark-companions

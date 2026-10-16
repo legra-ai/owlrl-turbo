@@ -66,6 +66,12 @@ MIT OR Apache-2.0. Copyright 2026 DataRoad Inc, Delaware, USA, trading as Legra.
 
 ## Development
 
+The [shared companion-project benchmark suite](https://github.com/legra-ai/pyshacl-turbo/blob/main/benchmarks/companions.md)
+compares the three turbo projects with their reference packages, including RDFS,
+OWL-RL, native/RDFLib conversion and complete SHACL pipelines. With the three
+repositories as siblings, run `make benchmark-companions`. Measurements use pinned
+published wheels and separate timing and peak RSS workers.
+
 Use `make dev` and `make check`. The initial alpha is published only by the
 verified GitHub Actions workflow; see [release instructions](docs/releasing.md).
 
