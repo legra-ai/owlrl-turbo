@@ -1,5 +1,16 @@
 # owlrl-turbo
 
+[![Python line coverage](https://legra-ai.github.io/owlrl-turbo/python-lines.svg)](https://legra-ai.github.io/owlrl-turbo/)
+[![Python branch coverage](https://legra-ai.github.io/owlrl-turbo/python-branches.svg)](https://legra-ai.github.io/owlrl-turbo/)
+[![Shared runtime Rust line coverage](https://legra-ai.github.io/owlrl-turbo/rust-lines.svg)](https://legra-ai.github.io/owlrl-turbo/)
+[![Shared runtime Rust region coverage](https://legra-ai.github.io/owlrl-turbo/rust-regions.svg)](https://legra-ai.github.io/owlrl-turbo/)
+[![Shared runtime Rust function coverage](https://legra-ai.github.io/owlrl-turbo/rust-functions.svg)](https://legra-ai.github.io/owlrl-turbo/)
+
+Coverage badges update from successful main-branch CI measurements, including the
+daily scheduled run. Python lines and branches are separate; Rust badges measure
+owned native source exercised by Rust and Python integration tests.
+The Rust badges cover the shared rdflib-turbo runtime, including this project's tests.
+
 [![PyPI](https://img.shields.io/pypi/v/owlrl-turbo)](https://pypi.org/project/owlrl-turbo/)
 [![Tests and wheels](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml/badge.svg)](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml)
 
@@ -81,3 +92,10 @@ mutation, malformed inputs, standard RDF output and a pyshacl-turbo pipeline.
 
 CI requires 100% measured Python package line and branch coverage. This does
 not measure Rust coverage, full API compatibility or standards conformance.
+
+Rust coverage of the shared runtime is measured by
+[rdflib-turbo's native coverage harness](https://github.com/legra-ai/rdflib-turbo/blob/main/docs/native-coverage.md),
+including this project's Python integration tests against an instrumented native
+wheel. With sibling checkouts, run `make test-rust-coverage`. owlrl-turbo has no
+separate Rust implementation; the shared-runtime result is not a Python coverage
+percentage or a conformance claim.
