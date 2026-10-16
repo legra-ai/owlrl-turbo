@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/owlrl-turbo)](https://pypi.org/project/owlrl-turbo/)
 [![Tests and wheels](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml/badge.svg)](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml)
 
-Part of the Legra RDF stack: [pyshacl-turbo](https://github.com/legra-ai/pyshacl-turbo),
+Companion turbo projects: [pyshacl-turbo](https://github.com/legra-ai/pyshacl-turbo),
 [rdflib-turbo](https://github.com/legra-ai/rdflib-turbo) and
 [owlrl-turbo](https://github.com/legra-ai/owlrl-turbo).
 
@@ -13,7 +13,7 @@ extracted from pyshacl-turbo. There is no runtime dependency on Python owlrl or
 pyshacl-turbo and no Python inference fallback.
 
 ```sh
-pip install owlrl-turbo==0.1.0a1
+pip install owlrl-turbo==0.1.0a2
 ```
 
 ```python

@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "owlrl-turbo"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Native RDFS and OWL-RL inference using the rdflib-turbo runtime"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 authors = [{ name = "DataRoad Inc, Delaware, USA, trading as Legra" }]
-dependencies = ["rdflib-turbo==0.1.0a1"]
+dependencies = ["rdflib-turbo==0.1.0a2"]
 
 [project.urls]
 Repository = "https://github.com/legra-ai/owlrl-turbo"
