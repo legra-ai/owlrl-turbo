@@ -17,5 +17,9 @@ build:
 	uv build
 
 .PHONY: benchmark-companions
+.PHONY: test-rust-coverage
+test-rust-coverage:
+	$(MAKE) -C ../rdflib-turbo test-rust-coverage
+
 benchmark-companions:
 	$(MAKE) -C ../pyshacl-turbo benchmark-companions
