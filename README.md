@@ -59,11 +59,12 @@ Inference commits only after successful native execution. Errors leave the sourc
 unchanged. RDFLib inplace commits occur after native success, using RDFLib's normal
 mutation API; external RDFLib stores do not acquire a new transaction guarantee.
 
-This is **not a complete drop-in owlrl replacement**. DeductiveClosure classes,
-custom Python rule hooks, owl:imports loading, configurable axiom/datatype options,
-OWL-RL extensions and complete inconsistency diagnostics are not exposed. Inference
-initialization follows pyshacl-turbo's pinned modes, rather than configurable owlrl
-constructor flags. Full OWL-RL conformance and output parity are not claimed.
+This is **not a complete drop-in owlrl replacement**. A limited DeductiveClosure
+class interface is available with default constructor settings. Custom Python rule
+hooks, owl:imports loading, configurable axiom/datatype options, OWL-RL extensions
+and complete inconsistency diagnostics are not exposed. Inference initialization
+follows pyshacl-turbo's pinned modes. Full OWL-RL conformance and output parity
+are not claimed.
 
 Output stays within standard RDF: literal subjects and non-IRI predicates are
 excluded, including generalized triples that Python owlrl may emit. Valid
@@ -115,3 +116,20 @@ including this project's Python integration tests against an instrumented native
 wheel. With sibling checkouts, run `make test-rust-coverage`. owlrl-turbo has no
 separate Rust implementation; the shared-runtime result is not a Python coverage
 percentage or a conformance claim.
+
+### owlrl class interface (limited compatibility)
+
+```python
+from owlrl_turbo import DeductiveClosure, OWLRL_Semantics
+
+DeductiveClosure(OWLRL_Semantics).expand(graph)  # mutates graph; returns None
+```
+
+`RDFS_Semantics` and `RDFS_OWLRL_Semantics` are also available. Default
+constructor settings use native inference. RDFLib graphs use explicit conversion;
+legacy native Dataset inputs retain their handle. Axiomatic/datatype options,
+custom rule classes, process-global datatype switches, separate plain Graph
+destinations and the newer Store-backed Graph inference adapter are not yet
+implemented and raise explicit errors. This remains a limited compatibility
+facade with the standard-RDF/hasKey boundaries described in
+[ADR 0002](https://github.com/legra-ai/owlrl-turbo/blob/main/docs/adr/0002-deductive-closure-facade.md).
