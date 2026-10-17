@@ -3,7 +3,6 @@
 import hashlib
 import importlib.util
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -77,11 +76,23 @@ def test_install_refreshes_metadata_after_dependency_publication(tmp_path, monke
         monkeypatch.setenv("UV_DEFAULT_INDEX", f"http://127.0.0.1:{server.server_port}/simple/")
         monkeypatch.delenv("UV_INDEX_URL", raising=False)
         monkeypatch.delenv("UV_EXTRA_INDEX_URL", raising=False)
-        environment = tmp_path / "venv"
-        subprocess.run([uv, "venv", "--python", sys.executable, str(environment)], check=True)
-        python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        project = tmp_path / "project"
+        subprocess.run(
+            [
+                uv,
+                "init",
+                "--bare",
+                "--no-workspace",
+                "--vcs",
+                "none",
+                "--python",
+                sys.executable,
+                str(project),
+            ],
+            check=True,
+        )
         initial = subprocess.run(
-            [uv, "pip", "install", "--python", str(python), str(consumer)],
+            [uv, "add", "--no-sync", "--project", str(project), str(consumer)],
             capture_output=True,
             text=True,
         )
@@ -95,12 +106,17 @@ def test_install_refreshes_metadata_after_dependency_publication(tmp_path, monke
         )
         installer = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(installer)
-        installer.install_wheel(python, consumer, test_extra=False)
+        installer.install_wheel(project, consumer, test_extra=False)
 
         assert state["index_reads"] >= 2
         observed = subprocess.check_output(
             [
-                str(python),
+                uv,
+                "run",
+                "--project",
+                str(project),
+                "--locked",
+                "python",
                 "-c",
                 "import importlib.metadata as m, json; print(json.dumps(m.version('freshness-runtime')))",
             ],

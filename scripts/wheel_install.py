@@ -1,12 +1,13 @@
-"""Install a built wheel and its declared dependencies for release verification."""
+"""Resolve and sync the exact release wheel in an isolated native uv project."""
 
 import subprocess
 
 
-def install_wheel(python, wheel, *, test_extra=True):
-    requirement = str(wheel) + ("[test]" if test_extra else "")
-    # Release checks must revalidate index metadata that can predate a new dependency.
-    subprocess.run(
-        ["uv", "pip", "install", "--refresh", "--python", str(python), requirement],
-        check=True,
-    )
+def install_wheel(project, wheel, *, test_extra=True):
+    # A just-published runtime must invalidate uv's cached empty index response.
+    arguments = ["uv", "add", "--project", str(project), "--no-sync", "--refresh"]
+    if test_extra:
+        arguments.extend(["--extra", "test"])
+    arguments.append(str(wheel))
+    subprocess.run(arguments, check=True)
+    subprocess.run(["uv", "sync", "--project", str(project), "--locked"], check=True)

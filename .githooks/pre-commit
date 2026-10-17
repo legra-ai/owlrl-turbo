@@ -1,11 +1,11 @@
 #!/bin/sh
-if .venv/bin/ruff check src tests scripts; then
+if uv run --locked --extra test ruff check src tests scripts; then
     :
 else
     printf 'Python lint check failed; run make dev before committing\n' >&2
     exit 1
 fi
-if .venv/bin/ruff format --check src tests scripts; then
+if uv run --locked --extra test ruff format --check src tests scripts; then
     :
 else
     printf 'Python formatting check failed; run make dev before committing\n' >&2

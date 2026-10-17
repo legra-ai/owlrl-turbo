@@ -1,6 +1,5 @@
 """Install and test built wheels in isolated Python 3.11 and 3.14 environments."""
 
-import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -13,14 +12,30 @@ if len(wheels) != 1:
     raise ValueError("Expected exactly one built wheel")
 for version in ("3.11", "3.14"):
     with tempfile.TemporaryDirectory() as directory:
-        environment = Path(directory) / "venv"
-        subprocess.run(["uv", "venv", "--python", version, str(environment)], check=True)
-        python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        install_wheel(python, wheels[0])
+        project = Path(directory) / "project"
         subprocess.run(
             [
-                str(python),
-                "-m",
+                "uv",
+                "init",
+                "--bare",
+                "--no-workspace",
+                "--vcs",
+                "none",
+                "--python",
+                version,
+                str(project),
+            ],
+            check=True,
+        )
+        subprocess.run(["uv", "python", "pin", "--project", str(project), version], check=True)
+        install_wheel(project, wheels[0])
+        subprocess.run(
+            [
+                "uv",
+                "run",
+                "--project",
+                str(project),
+                "--locked",
                 "pytest",
                 str(root / "tests"),
                 "-q",

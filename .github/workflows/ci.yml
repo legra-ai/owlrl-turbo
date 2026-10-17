@@ -27,6 +27,9 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       revision: ${{ steps.release.outputs.revision }}
     steps:
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -34,7 +37,7 @@ jobs:
         with:
           python-version: '3.13'
       - id: release
-        run: python scripts/prepare_release.py
+        run: uv run --no-project python scripts/prepare_release.py
   build:
     needs: prepare
     runs-on: ubuntu-latest
@@ -43,14 +46,16 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - name: Build wheel from the source archive
         run: |
           uv build --sdist --out-dir source-dist || exit 1
           uv build --wheel --out-dir wheel-dist source-dist/*.tar.gz || exit 1
           mkdir dist || exit 1
           cp source-dist/* wheel-dist/* dist/ || exit 1
-      - run: uvx --from twine==7.0.0 twine check --strict dist/*
-      - run: python scripts/release_packages.py check-build
+      - run: uv tool run --from twine==7.0.0 twine check --strict dist/*
+      - run: uv run --no-project python scripts/release_packages.py check-build
       - uses: actions/upload-artifact@v7
         with:
           name: release-packages
@@ -70,8 +75,10 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.0
-      - run: uvx ruff check src tests scripts
-      - run: uvx ruff format --check src tests scripts
+        with:
+          version: "0.13.1"
+      - run: uv run --locked --extra test ruff check src tests scripts
+      - run: uv run --locked --extra test ruff format --check src tests scripts
   wheels:
     needs: [prepare, build]
     runs-on: ${{ matrix.os }}
@@ -87,21 +94,26 @@ jobs:
         with:
           python-version: '3.13'
       - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - uses: actions/download-artifact@v8
         with:
           name: release-packages
           path: dist
-      - run: python scripts/test_wheel.py
+      - run: uv run --no-project python scripts/test_wheel.py
   test:
     name: test
     needs: [prepare, verify, build, wheels, native-coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - name: Require all release checks
         env:
           RESULTS: ${{ toJSON(needs) }}
-        shell: python
+        shell: uv run --no-project python {0}
         run: |
           import json, os
           failures = [name for name, job in json.loads(os.environ['RESULTS']).items() if job['result'] != 'success']
@@ -123,6 +135,9 @@ jobs:
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       RELEASE_REVISION: ${{ needs.prepare.outputs.revision }}
     steps:
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
@@ -130,7 +145,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - run: python scripts/tag_release.py
+      - run: uv run --no-project python scripts/tag_release.py
       - name: Create draft prerelease if absent
         run: |
           if gh release view "v$RELEASE_VERSION" >/dev/null 2>&1; then
@@ -143,14 +158,17 @@ jobs:
           pattern: release-*
           merge-multiple: true
           path: dist
-      - run: python scripts/release_packages.py stage
+      - run: uv run --no-project python scripts/release_packages.py stage
       - id: pending
-        run: python scripts/release_packages.py filter
-      - if: steps.pending.outputs.missing == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        run: uv run --no-project python scripts/release_packages.py filter
+      - name: Attest the original tested archives
+        if: steps.pending.outputs.missing == 'true'
+        uses: astral-sh/attest-action@f589a42a7efb6fe400b4f400de60b4bc90390027
         with:
-          packages-dir: pending-packages/
-      - run: python scripts/release_packages.py verify
+          paths: pending-packages/*
+      - if: steps.pending.outputs.missing == 'true'
+        run: uv publish --trusted-publishing always pending-packages/*
+      - run: uv run --no-project python scripts/release_packages.py verify
       - run: gh release edit "v$RELEASE_VERSION" --draft=false
 
   publish-coverage:
@@ -166,6 +184,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
@@ -176,7 +197,7 @@ jobs:
         with:
           name: native-rust-coverage
           path: coverage-site/reports
-      - run: python scripts/coverage_site.py --python coverage-site/reports/owlrl-python-coverage.json --rust coverage-site/reports/summary.json --output coverage-site --project owlrl-turbo --revision "${{ needs.prepare.outputs.revision }}"
+      - run: uv run --no-project python scripts/coverage_site.py --python coverage-site/reports/owlrl-python-coverage.json --rust coverage-site/reports/summary.json --output coverage-site --project owlrl-turbo --revision "${{ needs.prepare.outputs.revision }}"
       - uses: actions/upload-pages-artifact@v5
         with:
           path: coverage-site

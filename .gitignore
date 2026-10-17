@@ -6,3 +6,5 @@ __pycache__/
 .coverage*
 htmlcov/
 python-coverage.*
+
+.mypy_cache/
