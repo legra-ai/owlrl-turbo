@@ -1,30 +1,25 @@
 # owlrl-turbo
 
+[![PyPI](https://img.shields.io/pypi/v/owlrl-turbo)](https://pypi.org/project/owlrl-turbo/)
+
+[![Tests and wheels](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml/badge.svg)](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml)
+
 [![Python line coverage](https://legra-ai.github.io/owlrl-turbo/python-lines.svg)](https://legra-ai.github.io/owlrl-turbo/)
 [![Python branch coverage](https://legra-ai.github.io/owlrl-turbo/python-branches.svg)](https://legra-ai.github.io/owlrl-turbo/)
 [![Shared runtime Rust line coverage](https://legra-ai.github.io/owlrl-turbo/rust-lines.svg)](https://legra-ai.github.io/owlrl-turbo/)
 [![Shared runtime Rust region coverage](https://legra-ai.github.io/owlrl-turbo/rust-regions.svg)](https://legra-ai.github.io/owlrl-turbo/)
 [![Shared runtime Rust function coverage](https://legra-ai.github.io/owlrl-turbo/rust-functions.svg)](https://legra-ai.github.io/owlrl-turbo/)
 
-Coverage badges update from successful main-branch CI measurements, including the
-daily scheduled run. Python lines and branches are separate; Rust badges measure
-owned native source exercised by Rust and Python integration tests.
-The Rust badges cover the shared rdflib-turbo runtime, including this project's tests.
-
-[![PyPI](https://img.shields.io/pypi/v/owlrl-turbo)](https://pypi.org/project/owlrl-turbo/)
-[![Tests and wheels](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml/badge.svg)](https://github.com/legra-ai/owlrl-turbo/actions/workflows/ci.yml)
-
-Companion turbo projects: [pyshacl-turbo](https://github.com/legra-ai/pyshacl-turbo),
-[rdflib-turbo](https://github.com/legra-ai/rdflib-turbo) and
-[owlrl-turbo](https://github.com/legra-ai/owlrl-turbo).
-
 Functional alpha of native RDFS and OWL-RL materialization for Python. Uses the
 shared exact-term dataset runtime provided by rdflib-turbo, with native inference
 extracted from pyshacl-turbo. There is no runtime dependency on Python owlrl or
 pyshacl-turbo and no Python inference fallback.
 
+Companion turbo projects: [pyshacl-turbo](https://github.com/legra-ai/pyshacl-turbo) and
+[rdflib-turbo](https://github.com/legra-ai/rdflib-turbo).
+
 ```sh
-pip install owlrl-turbo==0.1.0a2
+uv add owlrl-turbo==0.1.0a2
 ```
 
 ```python
@@ -77,6 +72,12 @@ MIT OR Apache-2.0. Copyright 2026 DataRoad Inc, Delaware, USA, trading as Legra.
 
 ## Development
 
+Development uses native uv project commands and the committed `uv.lock`.
+Run `make dev` to sync the project and test tools, then `make check`. Add or update
+Python dependencies with `uv add`; run Ruff, mypy and pytest through `uv run`.
+Build wheels and source distributions with `uv build`. The coverage and release
+harnesses create isolated uv projects and install the exact built wheels.
+
 The [shared companion-project benchmark suite](https://github.com/legra-ai/pyshacl-turbo/blob/main/benchmarks/companions.md)
 compares the three turbo projects with their reference packages, including RDFS,
 OWL-RL, native/RDFLib conversion and complete SHACL pipelines. With the three
@@ -87,11 +88,18 @@ Use `make dev` and `make check`. The initial alpha is published only by the
 verified GitHub Actions workflow; see [release instructions](docs/releasing.md).
 
 Install rdflib-turbo first, then install this project with its test extra and run
-`pytest`. Tests compare complete closures on bounded fixtures and exercise source
+`uv run --locked --extra test pytest`. Tests compare complete closures on bounded fixtures and exercise source
 mutation, malformed inputs, standard RDF output and a pyshacl-turbo pipeline.
 
-CI requires 100% measured Python package line and branch coverage. This does
-not measure Rust coverage, full API compatibility or standards conformance.
+### Coverage
+
+Coverage badges update from successful main-branch CI measurements, including the
+daily scheduled run. Python lines and branches are separate; Rust badges measure
+owned native source exercised by Rust and Python integration tests.
+The Rust badges cover the shared rdflib-turbo runtime, including this project's tests.
+
+CI requires 100% measured Python package line and branch coverage. Coverage is
+separate from full API compatibility and standards conformance.
 
 Rust coverage of the shared runtime is measured by
 [rdflib-turbo's native coverage harness](https://github.com/legra-ai/rdflib-turbo/blob/main/docs/native-coverage.md),

@@ -30,9 +30,16 @@ Configure the initial pending trusted publisher in PyPI with:
 The pypi GitHub environment permits main only. The first successful upload
 creates the PyPI project. A pending publisher alone does not reserve its name.
 
-Installed-wheel verification revalidates registry metadata with uv --refresh.
+Installed-wheel verification revalidates registry metadata with uv add --refresh.
 An earlier cached project index can omit a just-published exact runtime dependency,
 even after registry publication succeeds. A local HTTP-index regression first
 reproduces that cache transition, then requires the installer to fetch the new
 index and install the declared version. Missing dependencies remain hard errors;
 there is no retry or alternate dependency source in the installer.
+
+
+Source distributions and wheels are built with `uv build`, including native
+manylinux builds inside the platform containers. Publication uses `uv publish`
+with the existing trusted publisher and PEP 740 attestations for the original
+tested archives. Normal development uses `uv sync --locked --extra test` and
+`uv run --locked --extra test`; no pip interface or tox environment is used.
