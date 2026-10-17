@@ -39,6 +39,13 @@ assert len(source) == 2  # the default leaves the source unchanged
 expand(source, inference="owlrl", inplace=True)
 ```
 
+With rdflib-turbo's shared-validation release and the matching pyshacl-turbo
+release, pass `source` directly to `pyshacl_turbo.validate(source,
+shacl_graph=...)`. This retains the dataset used above; only the report becomes
+an RDFLib graph. The canonical [version benchmarks](https://github.com/legra-ai/pyshacl-turbo/blob/main/benchmarks/releases.md)
+compare this pipeline against the three original Python libraries and historical
+turbo releases. Exact wheels, dependency locks, raw timings and RSS are retained.
+
 `expand(graph, inference="owlrl", inplace=False, destination=None)` accepts
 rdflib_turbo.Dataset or RDFLib Graph/Dataset. Modes are rdfs, owlrl and both.
 The return value has the input kind. Native inputs remain native between calls;
