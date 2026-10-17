@@ -41,4 +41,4 @@ fail_under = 100
 show_missing = true
 
 [dependency-groups]
-dev = ["mypy>=1.15,<2"]
+dev = ["mypy>=1.15,<3"]
