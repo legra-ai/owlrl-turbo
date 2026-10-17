@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: 137e1dbad0aae1ac681eb7bf9fd1572709604daf
+          ref: c6c80485f544cb45b92131a935e12138cb90836f
           path: coverage-runtime
       - uses: actions/setup-python@v7
         with:
