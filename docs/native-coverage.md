@@ -20,3 +20,11 @@ the runtime harness. See
 [the runtime methodology](https://github.com/legra-ai/rdflib-turbo/blob/main/docs/native-coverage.md).
 Rust branch coverage, dependency/vendored-patch coverage and standards
 conformance remain unmeasured by these badges.
+
+
+The pinned runtime includes standalone Rust boundary tests as well as Python
+integration tests. They exercise malformed lists, atomic inference failures,
+exact keys, graph contexts and poisoned locks. Its datatype parser also carries
+the shared gMonthDay leap-day correction. Unexecuted invariant/error regions
+remain visible in the measured denominator; this update does not change the
+badge scope or assign synthetic coverage.
