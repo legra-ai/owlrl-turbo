@@ -64,9 +64,13 @@ def expand(
         raise ValueError("A named inference destination requires a Dataset")
     if multigraph and destination is None:
         destination = "urn:owlrl-turbo:inference"
-    expanded = (
-        Dataset.from_rdflib(graph).infer(inference=inference, destination=destination).to_rdflib()
-    )
+    native_source = Dataset.from_rdflib(graph)
+    if inplace:
+        expanded = native_source.infer_delta(
+            inference=inference, destination=destination
+        ).to_rdflib()
+    else:
+        expanded = native_source.infer(inference=inference, destination=destination).to_rdflib()
     result = expanded if multigraph else expanded.default_graph
     if inplace:
         if isinstance(graph, RDFLibDataset):
