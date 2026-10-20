@@ -18,7 +18,13 @@ Repository = "https://github.com/legra-ai/owlrl-turbo"
 Issues = "https://github.com/legra-ai/owlrl-turbo/issues"
 
 [project.optional-dependencies]
-test = ["pytest>=8,<10", "pytest-cov>=7.1,<8", "owlrl>=7.1,<8", "pyshacl-turbo>=0.2.4,<0.4", "ruff>=0.12"]
+test = [
+    "pytest>=8,<10",
+    "pytest-cov>=7.1,<8",
+    "owlrl>=7.1,<8",
+    "pyshacl-turbo>=0.4.1,<0.5",
+    "ruff>=0.12",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/owlrl_turbo"]
