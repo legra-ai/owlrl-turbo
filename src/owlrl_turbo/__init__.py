@@ -82,6 +82,6 @@ def expand(
                 )
                 target.add((s, p, o))
         else:
-            graph += result
+            graph += expanded.default_graph
         return graph
     return result
