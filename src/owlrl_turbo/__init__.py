@@ -15,6 +15,7 @@ from ._closure import (
     RDFS_Semantics,
     _bind_diagnostics,
     _expand,
+    return_closure_class,
 )
 from ._imports import AUTO, JSON, RDFA, RDFXML, TURTLE, interpret_owl_imports
 
@@ -31,6 +32,7 @@ __all__ = [
     "RDFS_Semantics",
     "expand",
     "interpret_owl_imports",
+    "return_closure_class",
 ]
 
 

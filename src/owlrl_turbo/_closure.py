@@ -130,6 +130,19 @@ class RDFS_OWLRL_Semantics(OWLRL_Semantics, RDFS_Semantics):
         super().__init__(graph, axioms, daxioms, rdfs=True, destination=destination)
 
 
+def return_closure_class(owl_closure, rdfs_closure, owl_extras, trimming=False):
+    """Select built-in native semantics; unsupported extensions fail explicitly.
+
+    As in owlrl, extras are ignored when OWL closure is disabled. Trimming only
+    applies to extension semantics and does not alter the three built-in modes.
+    """
+    if owl_closure:
+        if owl_extras:
+            raise NotImplementedError("Native OWL extension semantics are not implemented")
+        return RDFS_OWLRL_Semantics if rdfs_closure else OWLRL_Semantics
+    return RDFS_Semantics if rdfs_closure else None
+
+
 def _validate_closure_class(closure_class):
     if closure_class is not None:
         if not isinstance(closure_class, type):
