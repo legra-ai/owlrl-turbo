@@ -1,6 +1,7 @@
 """The installed facade advertises its typed API and current companion tests."""
 
 import inspect
+from importlib.metadata import requires
 from importlib.resources import files
 from pathlib import Path
 from typing import get_overloads
@@ -28,3 +29,13 @@ def test_test_extra_runs_current_companion_release():
     )
     assert requirement.specifier.contains("0.4.1")
     assert not requirement.specifier.contains("0.2.7")
+
+
+def test_runtime_requirement_excludes_releases_without_native_delta():
+    requirement = next(
+        Requirement(item)
+        for item in requires("owlrl-turbo")
+        if Requirement(item).name == "rdflib-turbo"
+    )
+    assert requirement.specifier.contains("0.2.0a5", prereleases=True)
+    assert not requirement.specifier.contains("0.2.0a4", prereleases=True)

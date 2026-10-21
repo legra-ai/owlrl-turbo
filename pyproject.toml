@@ -11,7 +11,9 @@ requires-python = ">=3.11"
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 authors = [{ name = "DataRoad Inc, Delaware, USA, trading as Legra" }]
-dependencies = ["rdflib-turbo>=0.1.0a2,<0.3"]
+dependencies = [
+    "rdflib-turbo>=0.2.0a5,<0.3",
+]
 
 [project.urls]
 Repository = "https://github.com/legra-ai/owlrl-turbo"
