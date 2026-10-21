@@ -415,6 +415,7 @@ dependencies = [
 [package.optional-dependencies]
 test = [
     { name = "owlrl" },
+    { name = "packaging" },
     { name = "pyshacl-turbo" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -429,10 +430,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "owlrl", marker = "extra == 'test'", specifier = ">=7.1,<8" },
-    { name = "pyshacl-turbo", marker = "extra == 'test'", specifier = ">=0.4.1,<0.5" },
+    { name = "packaging", marker = "extra == 'test'", specifier = ">=26.3" },
+    { name = "pyshacl-turbo", marker = "extra == 'test'", specifier = ">=0.4.1" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1,<8" },
-    { name = "rdflib-turbo", specifier = ">=0.2.0a5,<0.3" },
+    { name = "rdflib-turbo", specifier = ">=0.2.0a5" },
     { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12" },
 ]
 provides-extras = ["test"]
