@@ -23,8 +23,9 @@ Semantics classes select the corresponding native mode. In owlrl, the
 `rdfs_closure` flag is a subclass hook: setting it on OWLRL_Semantics does not turn
 that class into combined semantics. Differential tests retain that behavior.
 
-Unsupported axiomatic/datatype flags, process-global datatype conversion switches
-and custom closure classes fail explicitly. A distinct plain Graph destination
+ADR 0006 supersedes the initial rejection of axiomatic/datatype flags and the
+per-closure datatype conversion preference. Process-global datatype conversion
+switches and custom closure classes still fail explicitly. A distinct plain Graph destination
 also fails: reference rules read only the source snapshot, whereas native full
 closure feeds new consequences back into subsequent rounds. Dataset destinations
 can safely use native union closure and named/default output graphs.

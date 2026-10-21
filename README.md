@@ -60,8 +60,8 @@ unchanged. RDFLib inplace commits occur after native success, using RDFLib's nor
 mutation API; external RDFLib stores do not acquire a new transaction guarantee.
 
 This is **not a complete drop-in owlrl replacement**. A limited DeductiveClosure
-class interface is available with default constructor settings. Custom Python rule
-hooks, owl:imports loading, configurable axiom/datatype options, OWL-RL extensions
+class interface supports native axiomatic and datatype-axiom options. Custom Python rule
+hooks, owl:imports loading, OWL-RL extensions
 and complete inconsistency diagnostics are not exposed. Inference initialization
 follows pyshacl-turbo's pinned modes. Full OWL-RL conformance and output parity
 are not claimed.
@@ -127,9 +127,18 @@ DeductiveClosure(OWLRL_Semantics).expand(graph)  # mutates graph; returns None
 
 `RDFS_Semantics` and `RDFS_OWLRL_Semantics` are also available. Default
 constructor settings use native inference. RDFLib graphs use explicit conversion;
-native Dataset inputs retain their handle. Axiomatic/datatype options,
-custom rule classes, process-global datatype switches, separate plain Graph
+native Dataset inputs retain their handle. Both `axiomatic_triples` and
+`datatype_axioms` are forwarded to the native runtime by class and functional
+entry points. `improved_datatypes=False` is accepted for the built-in semantics;
+closure execution never changes RDFLib process-global converters. Custom rule
+classes, process-global datatype switches, separate plain Graph
 destinations and the newer Store-backed Graph inference adapter are not yet
 implemented and raise explicit errors. This remains a limited compatibility
 facade with the standard-RDF/hasKey boundaries described in
 [ADR 0005](docs/adr/0005-deductive-closure-facade.md).
+
+The new axiom options require the native API introduced by
+[rdflib-turbo PR 41](https://github.com/legra-ai/rdflib-turbo/pull/41). The published
+`0.2.0a5` artifact does not expose this API. This source change must not be released
+until its dependency minimum names a published provider containing that API.
+Candidate testing uses an explicit exact-wheel override.
