@@ -164,3 +164,58 @@ def test_acyclic_diamond_may_parse_document_more_than_once(tmp_path):
         module.interpret_owl_imports("auto", graph)
         graphs.append(graph)
     assert isomorphic(*graphs)
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_cycle_hidden_by_duplicate_pending_statement(tmp_path, monkeypatch, reverse):
+    first, second, third = [tmp_path / f"{name}.ttl" for name in ("first", "second", "third")]
+    shared = f"<urn:shared> <{OWL.imports}> <{third.as_uri()}> ."
+    first.write_text(shared)
+    second.write_text(shared)
+    third.write_text(f"<urn:back> <{OWL.imports}> <{second.as_uri()}> .")
+    graph = Graph()
+    for target in [second, first] if reverse else [first, second]:
+        graph.add((URIRef("urn:root"), OWL.imports, URIRef(target.as_uri())))
+    actual_parse = graph.parse
+    calls = []
+
+    def parse(source, *, format):
+        calls.append(source)
+        if len(calls) > 8:
+            raise RuntimeError("cycle was not detected")
+        return actual_parse(source, format=format)
+
+    monkeypatch.setattr(graph, "parse", parse)
+    with pytest.raises(RuntimeError, match="Cyclic OWL import"):
+        owlrl_turbo.interpret_owl_imports("auto", graph)
+
+
+def test_uneven_overlapping_diamonds_are_not_cycles(tmp_path):
+    edges = {
+        "a": ["b", "c"],
+        "b": ["d"],
+        "c": ["d"],
+        "d": ["e"],
+        "e": [],
+        "x1": ["x2"],
+        "x2": ["x3"],
+        "x3": ["x4"],
+        "x4": ["z"],
+        "z": ["a"],
+    }
+    paths = {name: tmp_path / f"{name}.ttl" for name in edges}
+    for name, children in edges.items():
+        content = [
+            f"<urn:{name}> <{OWL.imports}> <{paths[child].as_uri()}> ." for child in children
+        ]
+        content.append(f"<urn:{name}> <urn:p> <urn:o> .")
+        paths[name].write_text("\n".join(content))
+    graphs = []
+    for module in (owlrl, owlrl_turbo):
+        graph = Graph()
+        for target in ("a", "x1"):
+            graph.add((URIRef("urn:root"), OWL.imports, URIRef(paths[target].as_uri())))
+        module.interpret_owl_imports("auto", graph)
+        graphs.append(graph)
+    assert isomorphic(*graphs)
+    assert len(graphs[1]) == len(edges)
