@@ -127,3 +127,75 @@ def test_install_refreshes_metadata_after_dependency_publication(tmp_path, monke
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_install_resolves_explicit_provider_wheel_without_registry(tmp_path, monkeypatch):
+    """The consumer and its tested native provider are one uv resolution."""
+    monkeypatch.delenv("UV_OFFLINE", raising=False)
+    monkeypatch.setenv("UV_DEFAULT_INDEX", "http://127.0.0.1:1/simple/")
+    runtime = make_wheel(tmp_path, "paired_runtime")
+    consumer = make_wheel(tmp_path, "paired_consumer", "paired-runtime==0.1.0a2")
+    project = tmp_path / "project"
+    subprocess.run(
+        [
+            "uv",
+            "init",
+            "--bare",
+            "--no-workspace",
+            "--vcs",
+            "none",
+            "--python",
+            sys.executable,
+            str(project),
+        ],
+        cwd=tmp_path,
+        check=True,
+    )
+    spec = importlib.util.spec_from_file_location(
+        "wheel_install", Path(__file__).parents[1] / "scripts/wheel_install.py"
+    )
+    installer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(installer)
+    installer.install_wheel(project, consumer, test_extra=False, runtime_wheel=runtime)
+    observed = subprocess.check_output(
+        [
+            "uv",
+            "run",
+            "--project",
+            str(project),
+            "--locked",
+            "python",
+            "-c",
+            "import importlib.metadata as m; print(m.version('paired-runtime'))",
+        ],
+        cwd=tmp_path,
+        text=True,
+    )
+    assert observed.strip() == "0.1.0a2"
+
+
+def test_provider_build_uses_selected_interpreter_and_unique_artifact(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location(
+        "wheel_install", Path(__file__).parents[1] / "scripts/wheel_install.py"
+    )
+    installer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(installer)
+    source = tmp_path / "source"
+    source.mkdir()
+    output = tmp_path / "wheels"
+    observed = []
+
+    def build(arguments, *, cwd, check):
+        assert cwd == source.resolve()
+        assert check is True
+        assert arguments[arguments.index("--python") + 1] == "3.14"
+        assert arguments[arguments.index("--out-dir") + 1] == str(output)
+        assert "maturin.build-args=--locked" in arguments
+        observed.append(arguments)
+        output.mkdir()
+        (output / "rdflib_turbo-0.2.0a6-cp314-cp314-platform.whl").touch()
+
+    monkeypatch.setattr(installer.subprocess, "run", build)
+    wheel = installer.build_runtime_wheel(source, "3.14", output)
+    assert wheel.name == "rdflib_turbo-0.2.0a6-cp314-cp314-platform.whl"
+    assert len(observed) == 1
