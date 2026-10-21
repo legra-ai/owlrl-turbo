@@ -219,3 +219,23 @@ def test_native_semantics_destination_attributes_and_union_match_reference(kind)
         assert isinstance(semantics.destination, Graph)
         assert semantics.destination.identifier == identifier
         assert semantics.destination.store.backend is graph.store.backend
+
+
+@pytest.mark.parametrize("kind", KINDS)
+@pytest.mark.parametrize("inplace", [False, True])
+@pytest.mark.parametrize("identifier", [EX.functional_output, BNode("functional-output")])
+def test_functional_native_graph_destination_follows_the_independent_output_owner(
+    kind, inplace, identifier, monkeypatch
+):
+    graph = source(kind, True)
+    input_graph = graph.graph(EX.input) if kind == "dataset" else graph
+    before = set(input_graph)
+    destination = Graph(graph.store, identifier, bind_namespaces="none")
+    monkeypatch.setattr(Dataset, "from_rdflib", forbid_conversion)
+    result = owlrl_turbo.expand(graph, inference="rdfs", inplace=inplace, destination=destination)
+    result_destination = Graph(result.store, identifier, bind_namespaces="none")
+    assert (EX.x, RDF.type, EX.D) in result_destination
+    assert set(input_graph) == before
+    if not inplace:
+        assert len(destination) == 0
+        assert result_destination.store.backend is not destination.store.backend
