@@ -128,27 +128,39 @@ def test_actual_relative_duplicate_imports(tmp_path, monkeypatch, kind):
     }
 
 
-def test_cyclic_imports_keep_reference_behavior(tmp_path, monkeypatch):
-    source = tmp_path / "cycle.ttl"
-    source.write_text(f"<urn:self> <{OWL.imports}> <{source.as_uri()}> .")
-    observations = []
+@pytest.mark.parametrize("length", [1, 2])
+def test_cycles_raise_before_repeated_parse(tmp_path, monkeypatch, length):
+    paths = [tmp_path / f"cycle{index}.ttl" for index in range(length)]
+    for index, source in enumerate(paths):
+        target = paths[(index + 1) % length].as_uri()
+        source.write_text(f"<urn:import> <{OWL.imports}> <{target}> .")
+    graph = Graph()
+    graph.add((URIRef("urn:root"), OWL.imports, URIRef(paths[0].as_uri())))
+    actual_parse = graph.parse
+    calls = []
+
+    def parse(inp, *, format):
+        calls.append(inp)
+        if len(calls) > length + 1:
+            raise RuntimeError("reference repeats indefinitely")
+        return actual_parse(inp, format=format)
+
+    monkeypatch.setattr(graph, "parse", parse)
+    with pytest.raises(RuntimeError, match="Cyclic OWL import"):
+        owlrl_turbo.interpret_owl_imports("auto", graph)
+    assert len(calls) <= length + 1
+
+
+def test_acyclic_diamond_may_parse_document_more_than_once(tmp_path):
+    leaf = tmp_path / "leaf.ttl"
+    leaf.write_text("<urn:s> <urn:p> <urn:o> .")
+    middle = tmp_path / "middle.ttl"
+    middle.write_text(f"<urn:middle> <{OWL.imports}> <{leaf.as_uri()}> .")
+    graphs = []
     for module in (owlrl, owlrl_turbo):
         graph = Graph()
-        graph.add((URIRef("urn:self"), OWL.imports, URIRef(source.as_uri())))
-        actual_parse = graph.parse
-        calls = []
-        sentinel = RuntimeError("bounded cycle observation")
-
-        def parse(inp, *, format):
-            calls.append((inp, format))
-            if len(calls) == 4:
-                raise sentinel
-            return actual_parse(inp, format=format)
-
-        monkeypatch.setattr(graph, "parse", parse)
-        with pytest.raises(RuntimeError) as caught:
-            module.interpret_owl_imports("auto", graph)
-        assert caught.value is sentinel
-        observations.append((calls, set(graph)))
-    assert observations[0] == observations[1]
-    assert observations[1][1] == set()
+        for target in (leaf, middle):
+            graph.add((URIRef("urn:root"), OWL.imports, URIRef(target.as_uri())))
+        module.interpret_owl_imports("auto", graph)
+        graphs.append(graph)
+    assert isomorphic(*graphs)
