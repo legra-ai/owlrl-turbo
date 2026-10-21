@@ -3,7 +3,6 @@
 from importlib.metadata import version
 from typing import overload
 
-
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph
 from rdflib_turbo import Dataset
