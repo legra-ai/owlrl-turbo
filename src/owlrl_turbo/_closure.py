@@ -46,11 +46,11 @@ def _expand(graph, mode, destination):
     # graphs are rejected above: their transaction context cannot be copied away.
     expanded = Dataset.from_rdflib(graph)
     if multigraph and target is not graph.default_graph:
-        expanded.infer(inference=mode, destination=str(target.identifier))
-        triples = expanded.to_rdflib().graph(target.identifier)
+        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier))
+        triples = delta.to_rdflib().graph(target.identifier)
     else:
-        expanded.infer(inference=mode)
-        triples = expanded.to_rdflib().default_graph
+        delta = expanded.infer_delta(inference=mode)
+        triples = delta.to_rdflib().default_graph
     # Native inference completes before touching the caller's RDFLib store.
     for triple in triples:
         target.add(triple)

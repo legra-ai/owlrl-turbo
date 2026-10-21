@@ -241,3 +241,26 @@ def test_combined_semantics_inherits_both_and_forces_rdfs():
     assert issubclass(owlrl_turbo.RDFS_OWLRL_Semantics, owlrl_turbo.RDFS_Semantics)
     assert issubclass(owlrl_turbo.RDFS_OWLRL_Semantics, owlrl_turbo.OWLRL_Semantics)
     assert owlrl_turbo.RDFS_OWLRL_Semantics(source(), False, False, rdfs=False).rdfs is True
+
+
+@pytest.mark.parametrize("multigraph", [False, True])
+def test_class_interface_exports_only_inference_delta(monkeypatch, multigraph):
+    graph = RDFLibDataset() if multigraph else source()
+    if multigraph:
+        graph.graph(EX.input).add((EX.C, RDFS.subClassOf, EX.D))
+        graph.graph(EX.input).add((EX.x, RDF.type, EX.C))
+    original_export = Dataset.to_rdflib
+    exported = []
+
+    def delta_only(dataset):
+        result = original_export(dataset)
+        assert not any(result.quads((EX.C, RDFS.subClassOf, EX.D, None)))
+        assert not any(result.quads((EX.x, RDF.type, EX.C, None)))
+        exported.append(result)
+        return result
+
+    monkeypatch.setattr(Dataset, "to_rdflib", delta_only)
+    owlrl_turbo.DeductiveClosure(owlrl_turbo.RDFS_Semantics).expand(graph)
+    assert len(exported) == 1
+    target = graph.default_graph if multigraph else graph
+    assert (EX.x, RDF.type, EX.D) in target

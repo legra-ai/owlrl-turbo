@@ -1,4 +1,4 @@
-# ADR 0002: Native execution behind the owlrl class interface
+# ADR 0005: Native execution behind the owlrl class interface
 
 Status: Accepted for the limited compatibility facade
 
@@ -9,6 +9,9 @@ matching owlrl 7.6.2. The existing functional `expand` keeps its nonmutating def
 
 RDFLib Graph conversion remains explicit owned copying before native execution.
 Native inference completes before writing consequences to an RDFLib destination.
+Only the native inference delta is exported and inserted, requiring the published
+rdflib-turbo 0.2.0a5 runtime or newer. Original statements are never decoded again
+or reinserted during writeback.
 This does not provide transactional guarantees for arbitrary third-party RDFLib
 Store writes. Legacy native Dataset inputs retain their native handle.
 
