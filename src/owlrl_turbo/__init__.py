@@ -1,13 +1,27 @@
 """RDFS and OWL-RL inference using rdflib-turbo's native runtime."""
 
+from importlib.metadata import version
 from typing import overload
 
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph
 from rdflib_turbo import Dataset
 
-__version__ = "0.1.0a3"
-__all__ = ["expand"]
+from ._closure import (
+    DeductiveClosure,
+    OWLRL_Semantics,
+    RDFS_OWLRL_Semantics,
+    RDFS_Semantics,
+)
+
+__version__ = version("owlrl-turbo")
+__all__ = [
+    "DeductiveClosure",
+    "OWLRL_Semantics",
+    "RDFS_OWLRL_Semantics",
+    "RDFS_Semantics",
+    "expand",
+]
 
 
 @overload
@@ -50,6 +64,8 @@ def expand(
     it is unavailable for ordinary RDFLib Graph inputs. Native writes commit
     only after the complete inference operation succeeds.
     """
+    if getattr(graph, "_turbo_native_graph", False):
+        raise NotImplementedError("Native Store Graph inference adapter is not implemented")
     if inference not in ("rdfs", "owlrl", "both"):
         raise ValueError(f"Unknown inference mode: {inference}")
     if isinstance(graph, Dataset):
