@@ -5,34 +5,42 @@ from rdflib import Graph, URIRef
 from rdflib_turbo import Dataset
 
 
-def _expand(graph, mode, destination, axioms=False, daxioms=False):
-    options = {"axiomatic_triples": axioms, "datatype_axioms": daxioms}
+def _destination(graph, destination):
     if getattr(graph, "_turbo_native_graph", False):
         raise NotImplementedError("Native Store Graph inference adapter is not implemented")
     if isinstance(graph, Dataset):
         if destination is not None and not isinstance(destination, (str, URIRef)):
             raise TypeError("Native Dataset destination must be an IRI")
-        graph.infer(inference=mode, destination=destination, **options)
-        return
+        return destination
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
     if graph.context_aware and not multigraph:
         raise NotImplementedError("Convert context-aware graphs to rdflib.Dataset first")
+    if multigraph:
+        graph.default_union = True
     if destination is None:
-        target = graph.default_graph if multigraph else graph
-    elif isinstance(destination, (str, URIRef)):
+        return graph.default_graph if multigraph else graph
+    if isinstance(destination, (str, URIRef)):
         if not multigraph:
             raise ValueError("IRI destinations require a Dataset")
-        target = graph.graph(URIRef(destination))
-    elif isinstance(destination, Graph):
-        if destination.store is not graph.store:
-            raise ValueError("The source and destination graphs must share the same backing store")
-        if not multigraph and destination.identifier != graph.identifier:
-            raise NotImplementedError("A separate Graph destination requires snapshot rule support")
-        target = destination
-    else:
+        return graph.graph(URIRef(destination))
+    if not isinstance(destination, Graph):
         raise TypeError("Expected an RDFLib Graph or IRI destination")
+    if destination.store is not graph.store:
+        raise ValueError("The source and destination graphs must share the same backing store")
+    if not multigraph and destination.identifier != graph.identifier:
+        raise NotImplementedError("A separate Graph destination requires snapshot rule support")
+    return destination
+
+
+def _expand(graph, mode, destination, axioms=False, daxioms=False):
+    options = {"axiomatic_triples": axioms, "datatype_axioms": daxioms}
+    target = _destination(graph, destination)
+    if isinstance(graph, Dataset):
+        graph.infer(inference=mode, destination=target, **options)
+        return
+    multigraph = isinstance(graph, RDFLibDataset)
     # Explicit Graph conversion is an owned native inference operation. New Store
     # graphs are rejected above: their transaction context cannot be copied away.
     expanded = Dataset.from_rdflib(graph)
@@ -54,7 +62,7 @@ class _Semantics:
 
     def __init__(self, graph, axioms, daxioms, rdfs=False, destination=None):
         self.graph = graph
-        self.destination = destination
+        self.destination = _destination(graph, destination)
         self.axioms = axioms
         self.daxioms = daxioms
         self.rdfs = rdfs

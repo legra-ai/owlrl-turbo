@@ -118,3 +118,33 @@ def test_mutated_improved_datatypes_option_and_noop_closure_need_no_conversion_s
     closure.improved_datatypes = True
     assert closure.expand(graph) is None
     assert (EX.x, RDF.type, EX.D) in graph
+
+
+@pytest.mark.parametrize("name", NAMES)
+@pytest.mark.parametrize("kind", ["graph", "dataset-default", "dataset-named"])
+def test_direct_semantics_resolves_public_destination_during_construction(name, kind):
+    for engine in (owlrl, owlrl_turbo):
+        graph = source(kind)
+        destination = URIRef(EX.output) if kind == "dataset-named" else None
+        semantics = getattr(engine, name)(graph, True, True, destination=destination)
+        assert semantics.graph is graph
+        assert semantics.axioms is True and semantics.daxioms is True
+        expected = (
+            graph
+            if kind == "graph"
+            else (graph.graph(destination) if destination is not None else graph.default_graph)
+        )
+        assert semantics.destination.identifier == expected.identifier
+        assert semantics.destination.store is expected.store
+        if kind != "dataset-named":
+            assert semantics.destination is expected
+        if kind != "graph":
+            assert graph.default_union is True
+
+
+def test_direct_semantics_rejects_foreign_destination_before_execution():
+    for engine in (owlrl, owlrl_turbo):
+        graph = source("graph")
+        with pytest.raises(ValueError, match="same backing store"):
+            engine.RDFS_Semantics(graph, False, False, destination=Graph())
+        assert len(graph) == 2
