@@ -3,9 +3,10 @@
 from importlib.metadata import version
 from typing import overload
 
+from rdflib import BNode, Graph
 from rdflib import Dataset as RDFLibDataset
-from rdflib import Graph
-from rdflib_turbo import Dataset
+from rdflib_turbo import Dataset, StoreDataset
+from rdflib_turbo import Graph as NativeGraph
 
 from ._closure import (
     DeductiveClosure,
@@ -13,6 +14,7 @@ from ._closure import (
     RDFS_OWLRL_Semantics,
     RDFS_Semantics,
     _bind_diagnostics,
+    _expand,
 )
 
 __version__ = version("owlrl-turbo")
@@ -23,6 +25,30 @@ __all__ = [
     "RDFS_Semantics",
     "expand",
 ]
+
+
+@overload
+def expand(
+    graph: NativeGraph,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | BNode | Graph | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
+) -> NativeGraph: ...
+
+
+@overload
+def expand(
+    graph: StoreDataset,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | BNode | Graph | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
+) -> StoreDataset: ...
 
 
 @overload
@@ -66,7 +92,7 @@ def expand(
     *,
     inference: str = "owlrl",
     inplace: bool = False,
-    destination: str | None = None,
+    destination: str | BNode | Graph | None = None,
     axiomatic_triples: bool = False,
     datatype_axioms: bool = False,
 ) -> Dataset | Graph:
@@ -74,14 +100,23 @@ def expand(
 
     Modes are rdfs, owlrl and both. The default leaves the input unchanged.
     destination, when specified, is an IRI naming the inference output graph;
-    it is unavailable for ordinary RDFLib Graph inputs. Native writes commit
+    native Graph inputs also accept exact blank identifiers and same-store Graph
+    destinations. Ordinary RDFLib Graph inputs cannot select a destination. Native writes commit
     only after the complete inference operation succeeds.
     """
     options = {"axiomatic_triples": axiomatic_triples, "datatype_axioms": datatype_axioms}
-    if getattr(graph, "_turbo_native_graph", False):
-        raise NotImplementedError("Native Store Graph inference adapter is not implemented")
     if inference not in ("rdfs", "owlrl", "both"):
         raise ValueError(f"Unknown inference mode: {inference}")
+    if isinstance(graph, (NativeGraph, StoreDataset)):
+        if isinstance(graph, StoreDataset) and destination is None:
+            destination = "urn:owlrl-turbo:inference"
+        graph._inference_scope(destination)
+        result = graph if inplace else graph.copy()
+        target = destination.identifier if isinstance(destination, Graph) else destination
+        _expand(result, inference, target, axiomatic_triples, datatype_axioms)
+        return result
+    if getattr(graph, "_turbo_native_graph", False):
+        raise TypeError("Expected a native Graph or StoreDataset instance")
     if isinstance(graph, Dataset):
         native_result = graph if inplace else graph.copy()
         return native_result.infer(inference=inference, destination=destination, **options)

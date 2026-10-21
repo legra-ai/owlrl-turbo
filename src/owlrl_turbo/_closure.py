@@ -2,12 +2,22 @@
 
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph, URIRef
-from rdflib_turbo import Dataset
+from rdflib_turbo import Dataset, StoreDataset
+from rdflib_turbo import Graph as NativeGraph
 
 
 def _destination(graph, destination):
+    if isinstance(graph, (NativeGraph, StoreDataset)):
+        graph._inference_scope(destination)
+        if isinstance(graph, StoreDataset):
+            graph.default_union = True
+        if destination is None:
+            return graph.default_graph if isinstance(graph, StoreDataset) else graph
+        if isinstance(destination, Graph):
+            return destination
+        return NativeGraph(store=graph.store, identifier=destination, bind_namespaces="none")
     if getattr(graph, "_turbo_native_graph", False):
-        raise NotImplementedError("Native Store Graph inference adapter is not implemented")
+        raise TypeError("Expected a native Graph or StoreDataset instance")
     if isinstance(graph, Dataset):
         if destination is not None and not isinstance(destination, (str, URIRef)):
             raise TypeError("Native Dataset destination must be an IRI")
@@ -46,12 +56,15 @@ def _expand(graph, mode, destination, axioms=False, daxioms=False, prior_error_m
         "prior_error_messages": prior_error_messages,
     }
     target = _destination(graph, destination)
+    if isinstance(graph, (NativeGraph, StoreDataset)):
+        graph.infer(inference=mode, destination=target, **options)
+        return graph.last_inference
     if isinstance(graph, Dataset):
         graph.infer(inference=mode, destination=target, **options)
         return graph._last_inference
     multigraph = isinstance(graph, RDFLibDataset)
-    # Explicit Graph conversion is an owned native inference operation. New Store
-    # graphs are rejected above: their transaction context cannot be copied away.
+    # Ordinary RDFLib input conversion owns its native inference operation.
+    # Native Store inputs returned above retain their original transaction.
     expanded = Dataset.from_rdflib(graph)
     if multigraph and target is not graph.default_graph:
         delta = expanded.infer_delta(inference=mode, destination=str(target.identifier), **options)

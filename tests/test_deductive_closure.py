@@ -126,7 +126,7 @@ def test_invalid_graph_and_destination_contracts(kind):
         class StoreView(Graph):
             _turbo_native_graph = True
 
-        with pytest.raises(NotImplementedError, match="adapter"):
+        with pytest.raises(TypeError, match="native Graph"):
             closure.expand(StoreView())
     elif kind == "native-destination":
         with pytest.raises(TypeError, match="IRI"):
@@ -187,7 +187,7 @@ def test_functional_expand_does_not_copy_native_store_views():
     class StoreView(Graph):
         _turbo_native_graph = True
 
-    with pytest.raises(NotImplementedError, match="adapter"):
+    with pytest.raises(TypeError, match="native Graph"):
         owlrl_turbo.expand(StoreView())
 
 
