@@ -59,7 +59,7 @@ def _expand(graph, mode, destination):
 
 
 class _Semantics:
-    _mode = None
+    _mode: str
 
     def __init__(self, graph, axioms, daxioms, rdfs=False, destination=None):
         _validate_options(axiomatic_triples=axioms, datatype_axioms=daxioms)
