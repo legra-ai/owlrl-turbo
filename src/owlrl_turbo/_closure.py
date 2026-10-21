@@ -34,12 +34,21 @@ def _destination(graph, destination):
     return destination
 
 
-def _expand(graph, mode, destination, axioms=False, daxioms=False):
-    options = {"axiomatic_triples": axioms, "datatype_axioms": daxioms}
+def _bind_diagnostics(graph, messages):
+    if messages:
+        graph.bind("err", "http://www.daml.org/2002/03/agents/agent-ont#")
+
+
+def _expand(graph, mode, destination, axioms=False, daxioms=False, prior_error_messages=None):
+    options = {
+        "axiomatic_triples": axioms,
+        "datatype_axioms": daxioms,
+        "prior_error_messages": prior_error_messages,
+    }
     target = _destination(graph, destination)
     if isinstance(graph, Dataset):
         graph.infer(inference=mode, destination=target, **options)
-        return
+        return graph._last_inference
     multigraph = isinstance(graph, RDFLibDataset)
     # Explicit Graph conversion is an owned native inference operation. New Store
     # graphs are rejected above: their transaction context cannot be copied away.
@@ -53,8 +62,10 @@ def _expand(graph, mode, destination, axioms=False, daxioms=False):
     # Native inference completes before touching the caller's RDFLib store.
     for triple in triples:
         target.add(triple)
+    _bind_diagnostics(target, expanded._last_inference.error_messages)
     if multigraph:
         graph.default_union = True
+    return expanded._last_inference
 
 
 class _Semantics:
@@ -68,8 +79,21 @@ class _Semantics:
         self.rdfs = rdfs
         self.error_messages = []
 
+    def add_error(self, message):
+        """Append a newly discovered message without replacing caller-owned history."""
+        if message not in self.error_messages:
+            self.error_messages.append(message)
+
     def closure(self):
-        _expand(self.graph, self._mode, self.destination, self.axioms, self.daxioms)
+        outcome = _expand(
+            self.graph,
+            self._mode,
+            self.destination,
+            self.axioms,
+            self.daxioms,
+            prior_error_messages=self.error_messages,
+        )
+        self.error_messages[:] = outcome.error_messages
 
 
 class RDFS_Semantics(_Semantics):

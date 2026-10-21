@@ -12,6 +12,7 @@ from ._closure import (
     OWLRL_Semantics,
     RDFS_OWLRL_Semantics,
     RDFS_Semantics,
+    _bind_diagnostics,
 )
 
 __version__ = version("owlrl-turbo")
@@ -114,5 +115,6 @@ def expand(
                 target.add((s, p, o))
         else:
             graph += expanded.default_graph
+        _bind_diagnostics(graph, native_source._last_inference.error_messages)
         return graph
     return result
