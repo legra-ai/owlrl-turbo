@@ -4,7 +4,9 @@ import subprocess
 from pathlib import Path
 
 
-def install_wheel(project, wheel, *, test_extra=True, runtime_wheel=None):
+def install_wheel(project, wheel, *, test_extra=True, runtime_wheel=None, runtime_requirement=None):
+    if runtime_wheel is not None and runtime_requirement is not None:
+        raise ValueError("Select a runtime wheel or registry requirement, not both")
     # A just-published runtime must invalidate uv's cached empty index response.
     arguments = ["uv", "add", "--project", str(project), "--no-sync", "--refresh"]
     if test_extra:
@@ -12,6 +14,8 @@ def install_wheel(project, wheel, *, test_extra=True, runtime_wheel=None):
     arguments.append(str(wheel))
     if runtime_wheel is not None:
         arguments.append(str(runtime_wheel))
+    if runtime_requirement is not None:
+        arguments.append(runtime_requirement)
     subprocess.run(arguments, cwd=project, check=True)
     subprocess.run(["uv", "sync", "--project", str(project), "--locked"], cwd=project, check=True)
 

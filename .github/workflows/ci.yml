@@ -114,9 +114,28 @@ jobs:
         env:
           OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/paired-runtime
           CARGO_TARGET_DIR: ${{ github.workspace }}/provider-target
+  minimum-runtime:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.13.1"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-packages
+          path: dist
+      - run: uv run --locked --extra test python scripts/test_minimum_runtime.py
+
   test:
     name: test
-    needs: [prepare, verify, build, wheels, native-coverage]
+    needs: [prepare, verify, build, wheels, native-coverage, minimum-runtime]
     if: always()
     runs-on: ubuntu-latest
     steps:
