@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -429,10 +429,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "owlrl", marker = "extra == 'test'", specifier = ">=7.1,<8" },
-    { name = "pyshacl-turbo", marker = "extra == 'test'", specifier = ">=0.2.4,<0.4" },
+    { name = "pyshacl-turbo", marker = "extra == 'test'", specifier = ">=0.4.1,<0.5" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1,<8" },
-    { name = "rdflib-turbo", specifier = ">=0.1.0a2,<0.3" },
+    { name = "rdflib-turbo", specifier = ">=0.2.0a5,<0.3" },
     { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12" },
 ]
 provides-extras = ["test"]
@@ -487,18 +487,18 @@ wheels = [
 
 [[package]]
 name = "pyshacl-turbo"
-version = "0.3.1"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "rdflib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/ff/3d64339af8463daff523ee3d9a264ca2e9a6c48a4b6e3773cb61f3d4d4c5/pyshacl_turbo-0.3.1.tar.gz", hash = "sha256:c8b57cb2d22b536bfb5e54bbb0bda584d70b1729dae0a6b1c37ffeec5e32cd4e", size = 1660235, upload-time = "2026-10-17T19:26:31.756Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/c0/b9312b5fd5cbc0a819ea051fe037bc838fbeebcf11e5b4bd3aa14a72746c/pyshacl_turbo-0.4.1.tar.gz", hash = "sha256:6976e1f161a9db8a83a602953a730f9c007d964641b7349096f95fd489c6a7c2", size = 1678751, upload-time = "2026-10-19T13:51:34.98Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/8b/e177f7613ba90ce417eedd105f90a2f53d5d9eef24906d2218b5ee6bbb15/pyshacl_turbo-0.3.1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:6545ef8b4ff0ba39810fc3d0778f06a998224ccff6d5a2b86c4d8475c197d911", size = 3871618, upload-time = "2026-10-17T19:26:23.059Z" },
-    { url = "https://files.pythonhosted.org/packages/14/fa/f3c38a154e9f1b99d48d48c7ac32a95d17e196042879703c5f0d34e2ea35/pyshacl_turbo-0.3.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:101b7ae9c171765ee7f58255b0062ed59b46f56d2c28ce6f86f01ae53a699d1f", size = 3719652, upload-time = "2026-10-17T19:26:25.094Z" },
-    { url = "https://files.pythonhosted.org/packages/38/74/3d40990596e0b1cc5aa27c8b6c4ddd96759e59786cdc62fe6fc28c417d93/pyshacl_turbo-0.3.1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:f1c3ee59517b8e561312b91056f4e2038a94dae7af60ec84afc9b964a124104d", size = 4024842, upload-time = "2026-10-17T19:26:26.888Z" },
-    { url = "https://files.pythonhosted.org/packages/6e/62/7e64176fc354dfaced391f5165100e6f4ed118e15004eb29e5d009bb58ee/pyshacl_turbo-0.3.1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:4eda781c8e3ed8d07124f5d5f3e404758dd61a1f977d96f6a04d8ecd5496d508", size = 4085569, upload-time = "2026-10-17T19:26:28.524Z" },
-    { url = "https://files.pythonhosted.org/packages/a5/b2/b7b5f4fe02689e6df3b46ea435ba71eee38123be32e8f9a47e0848f59c86/pyshacl_turbo-0.3.1-cp311-abi3-win_amd64.whl", hash = "sha256:c5f82b19930a40e324dbcc021ff005b0e84b753b12ec38e74cd145e22fb1c113", size = 3723122, upload-time = "2026-10-17T19:26:30.287Z" },
+    { url = "https://files.pythonhosted.org/packages/96/df/295f032da14e65de4db541c0e72ca1d5e718d8d41859ecaee10de2fc4d98/pyshacl_turbo-0.4.1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:0d7ded3e8faffa17f73aa4918520040ea2a05e1adbb8cfb400d9e97c876f3091", size = 3885481, upload-time = "2026-10-19T13:51:26.814Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/e4/6f640edb84d750132dfa2b0d7599e6ad51443f311ad6ba1d82ecec917010/pyshacl_turbo-0.4.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:58ede4d110456d1dedcf7f747018a1118c7b3ef7b93f510b57c519a9810736d2", size = 3734832, upload-time = "2026-10-19T13:51:28.547Z" },
+    { url = "https://files.pythonhosted.org/packages/48/85/74c05a7bbd44d465ecf9d88a903ad4477aee0991d311b30e1d4270032388/pyshacl_turbo-0.4.1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:702856d38d3f800c69b87bab1f1125c79bdacb98aebaaaf83a7964a6f3d82fd6", size = 4042051, upload-time = "2026-10-19T13:51:30.163Z" },
+    { url = "https://files.pythonhosted.org/packages/14/71/91aef360b71e3d5d47c55664bd0faad8d05892b1149145be0846d45825ce/pyshacl_turbo-0.4.1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:4449d5eda7a2f0770ddebfc630711163b8cbc7ef835e42d0f9175b9f979ff8e4", size = 4104440, upload-time = "2026-10-19T13:51:31.746Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/62/8d51f5ef70c9144647fd522eaa451c08df85eaf6410b35ddf1991926fb98/pyshacl_turbo-0.4.1-cp311-abi3-win_amd64.whl", hash = "sha256:7d08a59d43dd617277b5ff98366fd0931790334c1544d3fd7209d27f0d2dfdd0", size = 3737629, upload-time = "2026-10-19T13:51:33.291Z" },
 ]
 
 [[package]]
@@ -545,18 +545,38 @@ wheels = [
 
 [[package]]
 name = "rdflib-turbo"
-version = "0.2.0a1"
+version = "0.2.0a5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "rdflib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/91/5c21988f4e5299f22f3149d50c07bd4b67ec60fcb2006ef2d50461ae441c/rdflib_turbo-0.2.0a1.tar.gz", hash = "sha256:4fa66bd6ae17254059e469239db959651f8fa685796c69b70ee152d9fd43b944", size = 340459, upload-time = "2026-10-17T20:24:27.053Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/a6/0019909e8f31b078cb9f415c6d2ceea35f0e8d73e1c657f1b4ddc9ffc39f/rdflib_turbo-0.2.0a5.tar.gz", hash = "sha256:3007b8279c669fc3f3607a6a4bf2c6b6da0ad1e4b223bc7ca284130b129128af", size = 5406318, upload-time = "2026-10-20T21:29:46.409Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/42/b08b9328370e7dff4552a1f4b1e1ca3f68e98152aea04f5e9daa57b19f3f/rdflib_turbo-0.2.0a1-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:85375aaf86d0501d18a49bde7a13d40258209c0076d881d95fcfbb407cec26f9", size = 4251830, upload-time = "2026-10-17T20:24:17.918Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/13/a5a6488dda7caf612b2188cecf9e91743cc9e5f065d496190ee7d031b78c/rdflib_turbo-0.2.0a1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:d2b087434f4aa5b273f7dd227d766fdd806d7fd8336f7c8cca6f0b6db99cbc9e", size = 4072735, upload-time = "2026-10-17T20:24:20.03Z" },
-    { url = "https://files.pythonhosted.org/packages/57/89/0f6f1cd1ba88ea520d08a44c7187021e23c399c92cd2127b911a53662329/rdflib_turbo-0.2.0a1-cp311-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:b76e2de4ad4f3a44c6df1b6ea13a46533fecabe9b73601c17c3035af38072d50", size = 4403049, upload-time = "2026-10-17T20:24:21.777Z" },
-    { url = "https://files.pythonhosted.org/packages/4d/42/6afc6b2523cd1d6c8798f468c75b17b17b64ed90a3eb79421d51cc1823e3/rdflib_turbo-0.2.0a1-cp311-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:c5523e5899a6667fd36510f7c136ace8d80f87226cc6f025bccedf9b6efd1fbe", size = 4467702, upload-time = "2026-10-17T20:24:23.569Z" },
-    { url = "https://files.pythonhosted.org/packages/06/1e/3d9efaf8bbc4f3fa14913caba157179702a6f86b1b0f7302aa35c35fa6d0/rdflib_turbo-0.2.0a1-cp311-abi3-win_amd64.whl", hash = "sha256:e58f8efd5d1908f3a9647c57a855af6d3421076985f2c4cf9872529b191ea95a", size = 4037800, upload-time = "2026-10-17T20:24:25.586Z" },
+    { url = "https://files.pythonhosted.org/packages/29/0b/28c36bc8cd4a303741d5e27563ca4e7a33b4fe548dbaa3ad14f2c29bcad1/rdflib_turbo-0.2.0a5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:6a4edfeabbeb12c88f059a7d9526d0bcb8a15e5b4fb0a9992cd12f16ccd22956", size = 7140901, upload-time = "2026-10-20T21:28:44.753Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/a3/446eb1a1c6e368629e30ac791dd6e93255ee2c79b526e679a738b135d814/rdflib_turbo-0.2.0a5-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:4dcb6756853900112c762a0401e0322fefbc04edc2643736b43e521deae2c342", size = 7552029, upload-time = "2026-10-20T21:28:47.072Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/ae/749b2c715a155eb5be35db6fca776417536d9b629bb19afc8e93b065a007/rdflib_turbo-0.2.0a5-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:126d29be4c0fa21b91e8ffc1493598ac44153a849dafc86530924abe3f7d0e75", size = 8374382, upload-time = "2026-10-20T21:28:49.111Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/29/010e470bb7bfcc58068efe51efe5438e0c6e8580c46403985dadcd68df43/rdflib_turbo-0.2.0a5-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1e80e8c287142da405742d858894b83669be84d68f5387d55ef0dc57bf6d475a", size = 8726512, upload-time = "2026-10-20T21:28:51.236Z" },
+    { url = "https://files.pythonhosted.org/packages/37/88/37a9d2e3633f54b66a5c731da60bda107d9ef1937991cc172703b3c37f3c/rdflib_turbo-0.2.0a5-cp311-cp311-win_amd64.whl", hash = "sha256:47ff725ddc6a1165c9f41b3aa514cd0108149c797affd1a8f4e479bd0339d795", size = 6913211, upload-time = "2026-10-20T21:28:53.774Z" },
+    { url = "https://files.pythonhosted.org/packages/88/70/ea81658177cda0d4e40a2a3c779346080dc5a2c372f72cd6eda4740f5fb5/rdflib_turbo-0.2.0a5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c95bbfd03db9bc43bd7b3f081f75ab31569c8817190b03aab5cbd78dc74d3917", size = 7135797, upload-time = "2026-10-20T21:28:56.109Z" },
+    { url = "https://files.pythonhosted.org/packages/84/9f/531427ce9164e0e1eb7d59cb91da8829b1e1441ec8b41c0215165c126f72/rdflib_turbo-0.2.0a5-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:93c48fbe1bd03d0a76d554431db3100c519d47ba3fbc3a8c88850cab9abee615", size = 7557909, upload-time = "2026-10-20T21:29:01.375Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/4c/8079af791ffb91d258b77f97cd8a886087cef3f92064c3e116604adbfda5/rdflib_turbo-0.2.0a5-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:2063787903cc862898399b87ea1d240f0b832bf9abd05e39193363909d011529", size = 8375036, upload-time = "2026-10-20T21:29:03.914Z" },
+    { url = "https://files.pythonhosted.org/packages/27/78/5a797bd591203aa486fa3adf473b9e0acbbce360691a7e53747c5670514d/rdflib_turbo-0.2.0a5-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:876a0125643b0418b6c97ac02754e1c892796f12e617d3caa8612b464dd87580", size = 8726118, upload-time = "2026-10-20T21:29:06.227Z" },
+    { url = "https://files.pythonhosted.org/packages/20/8b/c180e0dda551fa567ebe7330c90ed10cf16f4b5959e88c55549fa9b5f14f/rdflib_turbo-0.2.0a5-cp312-cp312-win_amd64.whl", hash = "sha256:e0c9824930dfe8ea55ee2dcb010f85a75bc2e7ed53c1e1d118686cb84667c584", size = 6909757, upload-time = "2026-10-20T21:29:09.264Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/16/5eeac859eaab687b80690da575e08d73390aa62507f310467fa9cee6f585/rdflib_turbo-0.2.0a5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:ab4b35be7db33c891851cd2594c8ecf37a09bb8a64770a2cf31c7a83ae79b465", size = 7135672, upload-time = "2026-10-20T21:29:11.222Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/6f/8943f89c90d53754210ea8a00d5e514f289e1a3ddb7ea938479fa48882f8/rdflib_turbo-0.2.0a5-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:bd127f18c23d40d9d719d92518e8a6d135f141f35ed60f392d39bcffce8d99c6", size = 7557968, upload-time = "2026-10-20T21:29:13.447Z" },
+    { url = "https://files.pythonhosted.org/packages/de/94/6d5172864635f11ffeeac31b1f9ac01d4c070ed671d0506ebeec579f4088/rdflib_turbo-0.2.0a5-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:f3dc44b6e4d4a04ca06f7d71b56e6642a434f2d4bbda027d0db5c7d389998ac2", size = 8374618, upload-time = "2026-10-20T21:29:15.749Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/de/53a28c39f255f0396104fe59a251163503b1dcee8fa96b34f201721f43dd/rdflib_turbo-0.2.0a5-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:2302ff100383a3256b7935973b88ba62e874e3e406a57b7855865612fd73d8ef", size = 8725074, upload-time = "2026-10-20T21:29:18.653Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/cf/0fc570f2da08a7a152f85794c53e5cad61452634244dd5d70a46406628ac/rdflib_turbo-0.2.0a5-cp313-cp313-win_amd64.whl", hash = "sha256:8d0db0655312b4bb988fc94914478a71362f08d46959a73c53ef8961011f0ec4", size = 6909645, upload-time = "2026-10-20T21:29:20.862Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/f7/9945aefb1ae83bc5fdb3da139c2b0ae2d9f483822c89257020c789e741fd/rdflib_turbo-0.2.0a5-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:753ba55661bbb663d6bccae09f08e8e21eae21d44ff06db4b9bf0fcb33737997", size = 7133253, upload-time = "2026-10-20T21:29:22.959Z" },
+    { url = "https://files.pythonhosted.org/packages/df/56/33b3ccd574d145b7a867a06b4506176af602bdb59e6dd766053cf69bdc3c/rdflib_turbo-0.2.0a5-cp314-cp314-macosx_11_0_x86_64.whl", hash = "sha256:ff02844191d5c009fc2a75126900ef8b3b680cb0f1489a1e127837e70f9e21cf", size = 7556882, upload-time = "2026-10-20T21:29:25.319Z" },
+    { url = "https://files.pythonhosted.org/packages/16/b7/87868cb536076c1fcb1677b2723d976d9931177e67ca429dad42b3d19a62/rdflib_turbo-0.2.0a5-cp314-cp314-manylinux_2_28_aarch64.whl", hash = "sha256:826770e47094fbb16c8669b2c4a3e07154b68ec45a9f5d975cf375a202e0bb77", size = 8373613, upload-time = "2026-10-20T21:29:27.211Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/3e/b0eed02583c0c88bbde280e2d068f077254acae6026dfdeaea1fbfa98efb/rdflib_turbo-0.2.0a5-cp314-cp314-manylinux_2_28_x86_64.whl", hash = "sha256:f1377b08142fdafe703cf8289c0d6b3dac1a8e12ef96aca1b4d307e0633d26d8", size = 8724469, upload-time = "2026-10-20T21:29:29.251Z" },
+    { url = "https://files.pythonhosted.org/packages/08/1f/e8521afc54adf2b1b81e41370d9f9f8adf1c1572eef04f16e442e272b069/rdflib_turbo-0.2.0a5-cp314-cp314-win_amd64.whl", hash = "sha256:e5894ee12fdfc9dfbc16c4d902dd24f7a2294c36a20ac4a0475756d284967c57", size = 6908599, upload-time = "2026-10-20T21:29:31.724Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/c5/068f1c75628f52f6dcf77de8d2971bad2981557f6a2fc501cddd460490b1/rdflib_turbo-0.2.0a5-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:f9abf55d1cb24dbc3a0f8189a670adf0e627b9f54c3b47e69d21122532e40e3e", size = 7133318, upload-time = "2026-10-20T21:29:34.656Z" },
+    { url = "https://files.pythonhosted.org/packages/59/2b/62ab0b6865cf2a4f9d2398d69c45680265ab9472ec6957fbc8f94fe9ac84/rdflib_turbo-0.2.0a5-cp315-cp315-macosx_11_0_x86_64.whl", hash = "sha256:5dba2973082757fc52cdcefa2700708a9e2a33d94a96522483d8471c4e4df9a2", size = 7556762, upload-time = "2026-10-20T21:29:37.316Z" },
+    { url = "https://files.pythonhosted.org/packages/14/76/43e3dd97a199248874cb0bfee6e4bcc80018b1124794349abf79a04e1046/rdflib_turbo-0.2.0a5-cp315-cp315-manylinux_2_28_aarch64.whl", hash = "sha256:5ea5f6b17a46a5c536657dac84efe062695c065696b83381f95005d21f0adf53", size = 8373655, upload-time = "2026-10-20T21:29:39.484Z" },
+    { url = "https://files.pythonhosted.org/packages/07/e7/fe8cef67d0a7fc70da6c744b1720052108321c1f2b3215aa4393cd0fd87a/rdflib_turbo-0.2.0a5-cp315-cp315-manylinux_2_28_x86_64.whl", hash = "sha256:9a2b94bd08da53d3eb8dbbc5485e9c05cc7ff1adcff33427485379626d03bb7c", size = 8724373, upload-time = "2026-10-20T21:29:41.927Z" },
+    { url = "https://files.pythonhosted.org/packages/c7/f1/f70460edbe877250500e428fe692c2f89f770a1d249979a60eaf92d95400/rdflib_turbo-0.2.0a5-cp315-cp315-win_amd64.whl", hash = "sha256:e99b8f55653ecae846e488794b8eac7b3b2bcc394c15295f4e10aff67a1a662d", size = 6908642, upload-time = "2026-10-20T21:29:44.391Z" },
 ]
 
 [[package]]

@@ -66,14 +66,15 @@ initialization follows pyshacl-turbo's pinned modes, rather than configurable ow
 constructor flags. Full OWL-RL conformance and output parity are not claimed.
 
 Output stays within standard RDF: literal subjects and non-IRI predicates are
-excluded. Valid literal-valued consequences remain part of the contract. Native
+excluded, including generalized triples that Python owlrl may emit. Valid
+literal-valued consequences remain part of the contract. Native
 owl:hasKey checks every property, intentionally differing from the pinned Python
 reasoner's incomplete comparison. See [ADR 0001](docs/adr/0001-inference-contract.md).
 
-For SHACL, pass expanded.to_rdflib() to pyshacl_turbo.validate(). This conversion
-copies; pyshacl-turbo does not yet share the new dataset handle. No speedup claims
-are made for this initial release. Requires Python 3.11+; rdflib-turbo supplies the
-native platform wheel or builds its extension from source.
+For SHACL with matching shared-runtime releases, pass the native dataset directly
+to `pyshacl_turbo.validate()`. Explicit `expanded.to_rdflib()` conversion copies the
+dataset. Requires Python 3.11+; rdflib-turbo supplies the native platform wheel or
+builds its extension from source.
 
 MIT OR Apache-2.0. Copyright 2026 DataRoad Inc, Delaware, USA, trading as Legra.
 

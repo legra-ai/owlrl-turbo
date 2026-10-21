@@ -1,5 +1,7 @@
 """RDFS and OWL-RL inference using rdflib-turbo's native runtime."""
 
+from typing import overload
+
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph
 from rdflib_turbo import Dataset
@@ -8,7 +10,39 @@ __version__ = "0.1.0a3"
 __all__ = ["expand"]
 
 
-def expand(graph, *, inference="owlrl", inplace=False, destination=None):
+@overload
+def expand(
+    graph: RDFLibDataset,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | None = None,
+) -> RDFLibDataset: ...
+
+
+@overload
+def expand(
+    graph: Graph, *, inference: str = "owlrl", inplace: bool = False, destination: str | None = None
+) -> Graph: ...
+
+
+@overload
+def expand(
+    graph: Dataset,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | None = None,
+) -> Dataset: ...
+
+
+def expand(
+    graph: Dataset | Graph,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | None = None,
+) -> Dataset | Graph:
     """Compute a native closure, returning the input kind.
 
     Modes are rdfs, owlrl and both. The default leaves the input unchanged.
@@ -19,8 +53,8 @@ def expand(graph, *, inference="owlrl", inplace=False, destination=None):
     if inference not in ("rdfs", "owlrl", "both"):
         raise ValueError(f"Unknown inference mode: {inference}")
     if isinstance(graph, Dataset):
-        result = graph if inplace else graph.copy()
-        return result.infer(inference=inference, destination=destination)
+        native_result = graph if inplace else graph.copy()
+        return native_result.infer(inference=inference, destination=destination)
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
@@ -30,12 +64,16 @@ def expand(graph, *, inference="owlrl", inplace=False, destination=None):
         raise ValueError("A named inference destination requires a Dataset")
     if multigraph and destination is None:
         destination = "urn:owlrl-turbo:inference"
-    expanded = (
-        Dataset.from_rdflib(graph).infer(inference=inference, destination=destination).to_rdflib()
-    )
+    native_source = Dataset.from_rdflib(graph)
+    if inplace:
+        expanded = native_source.infer_delta(
+            inference=inference, destination=destination
+        ).to_rdflib()
+    else:
+        expanded = native_source.infer(inference=inference, destination=destination).to_rdflib()
     result = expanded if multigraph else expanded.default_graph
     if inplace:
-        if multigraph:
+        if isinstance(graph, RDFLibDataset):
             for s, p, o, g in expanded.quads():
                 target = (
                     graph.default_graph
@@ -44,6 +82,6 @@ def expand(graph, *, inference="owlrl", inplace=False, destination=None):
                 )
                 target.add((s, p, o))
         else:
-            graph += result
+            graph += expanded.default_graph
         return graph
     return result
