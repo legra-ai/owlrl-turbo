@@ -31,12 +31,20 @@ def expand(
     inference: str = "owlrl",
     inplace: bool = False,
     destination: str | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
 ) -> RDFLibDataset: ...
 
 
 @overload
 def expand(
-    graph: Graph, *, inference: str = "owlrl", inplace: bool = False, destination: str | None = None
+    graph: Graph,
+    *,
+    inference: str = "owlrl",
+    inplace: bool = False,
+    destination: str | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
 ) -> Graph: ...
 
 
@@ -47,6 +55,8 @@ def expand(
     inference: str = "owlrl",
     inplace: bool = False,
     destination: str | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
 ) -> Dataset: ...
 
 
@@ -56,6 +66,8 @@ def expand(
     inference: str = "owlrl",
     inplace: bool = False,
     destination: str | None = None,
+    axiomatic_triples: bool = False,
+    datatype_axioms: bool = False,
 ) -> Dataset | Graph:
     """Compute a native closure, returning the input kind.
 
@@ -64,13 +76,14 @@ def expand(
     it is unavailable for ordinary RDFLib Graph inputs. Native writes commit
     only after the complete inference operation succeeds.
     """
+    options = {"axiomatic_triples": axiomatic_triples, "datatype_axioms": datatype_axioms}
     if getattr(graph, "_turbo_native_graph", False):
         raise NotImplementedError("Native Store Graph inference adapter is not implemented")
     if inference not in ("rdfs", "owlrl", "both"):
         raise ValueError(f"Unknown inference mode: {inference}")
     if isinstance(graph, Dataset):
         native_result = graph if inplace else graph.copy()
-        return native_result.infer(inference=inference, destination=destination)
+        return native_result.infer(inference=inference, destination=destination, **options)
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
@@ -83,10 +96,12 @@ def expand(
     native_source = Dataset.from_rdflib(graph)
     if inplace:
         expanded = native_source.infer_delta(
-            inference=inference, destination=destination
+            inference=inference, destination=destination, **options
         ).to_rdflib()
     else:
-        expanded = native_source.infer(inference=inference, destination=destination).to_rdflib()
+        expanded = native_source.infer(
+            inference=inference, destination=destination, **options
+        ).to_rdflib()
     result = expanded if multigraph else expanded.default_graph
     if inplace:
         if isinstance(graph, RDFLibDataset):

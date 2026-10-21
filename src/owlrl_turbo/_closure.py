@@ -5,23 +5,21 @@ from rdflib import Graph, URIRef
 from rdflib_turbo import Dataset
 
 
-def _validate_options(improved_datatypes=True, axiomatic_triples=False, datatype_axioms=False):
-    for name, enabled in [
-        ("axiomatic_triples", axiomatic_triples),
-        ("datatype_axioms", datatype_axioms),
-        ("improved_datatypes", not improved_datatypes),
-    ]:
-        if enabled:
-            raise NotImplementedError(f"{name} is not supported by the native inference runtime")
+def _validate_options(improved_datatypes=True):
+    if not improved_datatypes:
+        raise NotImplementedError(
+            "improved_datatypes is not supported by the native inference runtime"
+        )
 
 
-def _expand(graph, mode, destination):
+def _expand(graph, mode, destination, axioms=False, daxioms=False):
+    options = {"axiomatic_triples": axioms, "datatype_axioms": daxioms}
     if getattr(graph, "_turbo_native_graph", False):
         raise NotImplementedError("Native Store Graph inference adapter is not implemented")
     if isinstance(graph, Dataset):
         if destination is not None and not isinstance(destination, (str, URIRef)):
             raise TypeError("Native Dataset destination must be an IRI")
-        graph.infer(inference=mode, destination=destination)
+        graph.infer(inference=mode, destination=destination, **options)
         return
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
@@ -46,10 +44,10 @@ def _expand(graph, mode, destination):
     # graphs are rejected above: their transaction context cannot be copied away.
     expanded = Dataset.from_rdflib(graph)
     if multigraph and target is not graph.default_graph:
-        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier))
+        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier), **options)
         triples = delta.to_rdflib().graph(target.identifier)
     else:
-        delta = expanded.infer_delta(inference=mode)
+        delta = expanded.infer_delta(inference=mode, **options)
         triples = delta.to_rdflib().default_graph
     # Native inference completes before touching the caller's RDFLib store.
     for triple in triples:
@@ -62,7 +60,6 @@ class _Semantics:
     _mode: str
 
     def __init__(self, graph, axioms, daxioms, rdfs=False, destination=None):
-        _validate_options(axiomatic_triples=axioms, datatype_axioms=daxioms)
         self.graph = graph
         self.destination = destination
         self.axioms = axioms
@@ -71,8 +68,7 @@ class _Semantics:
         self.error_messages = []
 
     def closure(self):
-        _validate_options(axiomatic_triples=self.axioms, datatype_axioms=self.daxioms)
-        _expand(self.graph, self._mode, self.destination)
+        _expand(self.graph, self._mode, self.destination, self.axioms, self.daxioms)
 
 
 class RDFS_Semantics(_Semantics):
@@ -122,7 +118,7 @@ class DeductiveClosure:
         datatype_axioms=False,
     ):
         _validate_closure_class(closure_class)
-        _validate_options(improved_datatypes, axiomatic_triples, datatype_axioms)
+        _validate_options(improved_datatypes)
         self.closure_class = closure_class
         self.improved_datatypes = improved_datatypes
         self.rdfs_closure = rdfs_closure
@@ -131,7 +127,7 @@ class DeductiveClosure:
 
     def expand(self, graph, destination=None):
         _validate_closure_class(self.closure_class)
-        _validate_options(self.improved_datatypes, self.axiomatic_triples, self.datatype_axioms)
+        _validate_options(self.improved_datatypes)
         if self.closure_class is not None:
             self.closure_class(
                 graph,

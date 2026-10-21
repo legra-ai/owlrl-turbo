@@ -43,7 +43,7 @@ def test_native_dataset_identity_and_none_semantics():
 
 @pytest.mark.parametrize(
     "flag,value",
-    [("axiomatic_triples", True), ("datatype_axioms", True), ("improved_datatypes", False)],
+    [("improved_datatypes", False)],
 )
 def test_unsupported_configuration_fails_before_mutation(flag, value):
     graph = source()
@@ -209,10 +209,6 @@ def test_mutated_configuration_is_validated_when_executed():
     closure.improved_datatypes = False
     with pytest.raises(NotImplementedError, match="improved_datatypes"):
         closure.expand(graph)
-    semantics = owlrl_turbo.OWLRL_Semantics(graph, False, False)
-    semantics.axioms = True
-    with pytest.raises(NotImplementedError, match="axiomatic_triples"):
-        semantics.closure()
     assert len(graph) == 2
 
 
