@@ -1,6 +1,8 @@
 """RDFS and OWL-RL inference using rdflib-turbo's native runtime."""
 
+from importlib.metadata import version
 from typing import overload
+
 
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph
@@ -13,7 +15,7 @@ from ._closure import (
     RDFS_Semantics,
 )
 
-__version__ = "0.1.0a3"
+__version__ = version("owlrl-turbo")
 __all__ = [
     "DeductiveClosure",
     "OWLRL_Semantics",
