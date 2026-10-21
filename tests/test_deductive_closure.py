@@ -41,18 +41,6 @@ def test_native_dataset_identity_and_none_semantics():
     assert bool(graph.query("ASK { <urn:x> a <urn:C> }"))
 
 
-@pytest.mark.parametrize(
-    "flag,value",
-    [("axiomatic_triples", True), ("datatype_axioms", True), ("improved_datatypes", False)],
-)
-def test_unsupported_configuration_fails_before_mutation(flag, value):
-    graph = source()
-    before = set(graph)
-    with pytest.raises(NotImplementedError, match=flag):
-        owlrl_turbo.DeductiveClosure(owlrl_turbo.OWLRL_Semantics, **{flag: value}).expand(graph)
-    assert set(graph) == before
-
-
 def test_invalid_closure_type_and_custom_rules_are_not_silently_ignored():
     with pytest.raises(ValueError, match="class reference"):
         owlrl_turbo.DeductiveClosure("owlrl")
@@ -138,7 +126,7 @@ def test_invalid_graph_and_destination_contracts(kind):
         class StoreView(Graph):
             _turbo_native_graph = True
 
-        with pytest.raises(NotImplementedError, match="adapter"):
+        with pytest.raises(TypeError, match="native Graph"):
             closure.expand(StoreView())
     elif kind == "native-destination":
         with pytest.raises(TypeError, match="IRI"):
@@ -199,21 +187,8 @@ def test_functional_expand_does_not_copy_native_store_views():
     class StoreView(Graph):
         _turbo_native_graph = True
 
-    with pytest.raises(NotImplementedError, match="adapter"):
+    with pytest.raises(TypeError, match="native Graph"):
         owlrl_turbo.expand(StoreView())
-
-
-def test_mutated_configuration_is_validated_when_executed():
-    graph = source()
-    closure = owlrl_turbo.DeductiveClosure(owlrl_turbo.OWLRL_Semantics)
-    closure.improved_datatypes = False
-    with pytest.raises(NotImplementedError, match="improved_datatypes"):
-        closure.expand(graph)
-    semantics = owlrl_turbo.OWLRL_Semantics(graph, False, False)
-    semantics.axioms = True
-    with pytest.raises(NotImplementedError, match="axiomatic_triples"):
-        semantics.closure()
-    assert len(graph) == 2
 
 
 @pytest.mark.parametrize("destination", [None, URIRef("urn:derived")])

@@ -1,10 +1,11 @@
 """Install and test built wheels in isolated Python 3.11 and 3.14 environments."""
 
+import os
 import subprocess
 import tempfile
 from pathlib import Path
 
-from wheel_install import install_wheel
+from wheel_install import build_runtime_wheel, install_wheel
 
 root = Path(__file__).resolve().parents[1]
 wheels = list((root / "dist").glob("*.whl"))
@@ -28,7 +29,13 @@ for version in ("3.11", "3.14"):
             check=True,
         )
         subprocess.run(["uv", "python", "pin", "--project", str(project), version], check=True)
-        install_wheel(project, wheels[0])
+        runtime = os.environ.get("OWLRL_TEST_RUNTIME_SOURCE")
+        runtime_wheel = (
+            build_runtime_wheel(runtime, version, Path(directory) / "provider-wheel")
+            if runtime is not None
+            else None
+        )
+        install_wheel(project, wheels[0], runtime_wheel=runtime_wheel)
         subprocess.run(
             [
                 "uv",

@@ -2,77 +2,111 @@
 
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph, URIRef
-from rdflib_turbo import Dataset
+from rdflib_turbo import Dataset, StoreDataset
+from rdflib_turbo import Graph as NativeGraph
 
 
-def _validate_options(improved_datatypes=True, axiomatic_triples=False, datatype_axioms=False):
-    for name, enabled in [
-        ("axiomatic_triples", axiomatic_triples),
-        ("datatype_axioms", datatype_axioms),
-        ("improved_datatypes", not improved_datatypes),
-    ]:
-        if enabled:
-            raise NotImplementedError(f"{name} is not supported by the native inference runtime")
-
-
-def _expand(graph, mode, destination):
+def _destination(graph, destination):
+    if isinstance(graph, (NativeGraph, StoreDataset)):
+        graph._inference_scope(destination)
+        if isinstance(graph, StoreDataset):
+            graph.default_union = True
+        if destination is None:
+            return graph.default_graph if isinstance(graph, StoreDataset) else graph
+        if isinstance(destination, Graph):
+            return destination
+        return NativeGraph(store=graph.store, identifier=destination, bind_namespaces="none")
     if getattr(graph, "_turbo_native_graph", False):
-        raise NotImplementedError("Native Store Graph inference adapter is not implemented")
+        raise TypeError("Expected a native Graph or StoreDataset instance")
     if isinstance(graph, Dataset):
         if destination is not None and not isinstance(destination, (str, URIRef)):
             raise TypeError("Native Dataset destination must be an IRI")
-        graph.infer(inference=mode, destination=destination)
-        return
+        return destination
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
     if graph.context_aware and not multigraph:
         raise NotImplementedError("Convert context-aware graphs to rdflib.Dataset first")
+    if multigraph:
+        graph.default_union = True
     if destination is None:
-        target = graph.default_graph if multigraph else graph
-    elif isinstance(destination, (str, URIRef)):
+        return graph.default_graph if multigraph else graph
+    if isinstance(destination, (str, URIRef)):
         if not multigraph:
             raise ValueError("IRI destinations require a Dataset")
-        target = graph.graph(URIRef(destination))
-    elif isinstance(destination, Graph):
-        if destination.store is not graph.store:
-            raise ValueError("The source and destination graphs must share the same backing store")
-        if not multigraph and destination.identifier != graph.identifier:
-            raise NotImplementedError("A separate Graph destination requires snapshot rule support")
-        target = destination
-    else:
+        return graph.graph(URIRef(destination))
+    if not isinstance(destination, Graph):
         raise TypeError("Expected an RDFLib Graph or IRI destination")
-    # Explicit Graph conversion is an owned native inference operation. New Store
-    # graphs are rejected above: their transaction context cannot be copied away.
+    if destination.store is not graph.store:
+        raise ValueError("The source and destination graphs must share the same backing store")
+    if not multigraph and destination.identifier != graph.identifier:
+        raise NotImplementedError("A separate Graph destination requires snapshot rule support")
+    return destination
+
+
+def _bind_diagnostics(graph, messages):
+    if messages:
+        graph.bind("err", "http://www.daml.org/2002/03/agents/agent-ont#")
+
+
+def _expand(graph, mode, destination, axioms=False, daxioms=False, prior_error_messages=None):
+    options = {
+        "axiomatic_triples": axioms,
+        "datatype_axioms": daxioms,
+        "prior_error_messages": prior_error_messages,
+    }
+    target = _destination(graph, destination)
+    if isinstance(graph, (NativeGraph, StoreDataset)):
+        graph.infer(inference=mode, destination=target, **options)
+        return graph.last_inference
+    if isinstance(graph, Dataset):
+        graph.infer(inference=mode, destination=target, **options)
+        return graph._last_inference
+    multigraph = isinstance(graph, RDFLibDataset)
+    # Ordinary RDFLib input conversion owns its native inference operation.
+    # Native Store inputs returned above retain their original transaction.
     expanded = Dataset.from_rdflib(graph)
     if multigraph and target is not graph.default_graph:
-        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier))
+        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier), **options)
         triples = delta.to_rdflib().graph(target.identifier)
     else:
-        delta = expanded.infer_delta(inference=mode)
+        delta = expanded.infer_delta(inference=mode, **options)
         triples = delta.to_rdflib().default_graph
     # Native inference completes before touching the caller's RDFLib store.
     for triple in triples:
         target.add(triple)
+    _bind_diagnostics(target, expanded._last_inference.error_messages)
     if multigraph:
         graph.default_union = True
+    return expanded._last_inference
 
 
 class _Semantics:
     _mode: str
 
     def __init__(self, graph, axioms, daxioms, rdfs=False, destination=None):
-        _validate_options(axiomatic_triples=axioms, datatype_axioms=daxioms)
         self.graph = graph
-        self.destination = destination
+        self.destination = _destination(graph, destination)
         self.axioms = axioms
         self.daxioms = daxioms
         self.rdfs = rdfs
         self.error_messages = []
 
+    def add_error(self, message):
+        """Append a newly discovered message without replacing caller-owned history."""
+        if message not in self.error_messages:
+            self.error_messages.append(message)
+
     def closure(self):
-        _validate_options(axiomatic_triples=self.axioms, datatype_axioms=self.daxioms)
-        _expand(self.graph, self._mode, self.destination)
+        outcome = _expand(
+            self.graph,
+            self._mode,
+            self.destination,
+            self.axioms,
+            self.daxioms,
+            prior_error_messages=self.error_messages,
+        )
+        self.error_messages[:] = outcome.error_messages
 
 
 class RDFS_Semantics(_Semantics):
@@ -94,6 +128,19 @@ class RDFS_OWLRL_Semantics(OWLRL_Semantics, RDFS_Semantics):
 
     def __init__(self, graph, axioms, daxioms, rdfs=True, destination=None):
         super().__init__(graph, axioms, daxioms, rdfs=True, destination=destination)
+
+
+def return_closure_class(owl_closure, rdfs_closure, owl_extras, trimming=False):
+    """Select built-in native semantics; unsupported extensions fail explicitly.
+
+    As in owlrl, extras are ignored when OWL closure is disabled. Trimming only
+    applies to extension semantics and does not alter the three built-in modes.
+    """
+    if owl_closure:
+        if owl_extras:
+            raise NotImplementedError("Native OWL extension semantics are not implemented")
+        return RDFS_OWLRL_Semantics if rdfs_closure else OWLRL_Semantics
+    return RDFS_Semantics if rdfs_closure else None
 
 
 def _validate_closure_class(closure_class):
@@ -122,7 +169,6 @@ class DeductiveClosure:
         datatype_axioms=False,
     ):
         _validate_closure_class(closure_class)
-        _validate_options(improved_datatypes, axiomatic_triples, datatype_axioms)
         self.closure_class = closure_class
         self.improved_datatypes = improved_datatypes
         self.rdfs_closure = rdfs_closure
@@ -131,7 +177,6 @@ class DeductiveClosure:
 
     def expand(self, graph, destination=None):
         _validate_closure_class(self.closure_class)
-        _validate_options(self.improved_datatypes, self.axiomatic_triples, self.datatype_axioms)
         if self.closure_class is not None:
             self.closure_class(
                 graph,

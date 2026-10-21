@@ -18,7 +18,7 @@ defaults:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
         with:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: c9c87a0c8754c2fe2de68d8a4da915b9246bbe6d
+          ref: e77b6359b2ba6d7694b741eb7f87f60b58faa1ca
           path: coverage-runtime
       - uses: actions/setup-python@v7
         with:
