@@ -1,6 +1,6 @@
 # ADR 0008: Execute native Store closures without conversion
 
-Status: Accepted for the candidate provider API; publication waits for its release
+Status: Accepted; provider API published in rdflib-turbo 0.2.0a7
 
 DeductiveClosure, the three direct Semantics classes, and functional expand
 accept rdflib-turbo Graph and StoreDataset owners. Forward the selected mode,
@@ -29,7 +29,6 @@ classes and objects merely claiming the native marker fail explicitly. ADR 0001'
 ordinary-RDF and hasKey boundaries and the initial multi-valued list ordering gap
 remain. This does not establish complete owlrl parity.
 
-The candidate requires scoped flags/history, native copy and last_inference
-capabilities newer than the published dependency floor. Exact provider artifacts
-validate this slice; do not publish it or invent a minimum version before an
-actual provider release contains these APIs.
+Scoped flags/history, native copy and last_inference are available in published
+rdflib-turbo 0.2.0a7, which is the dependency minimum. CI tests the exact registry
+minimum independently of candidate-provider artifacts.

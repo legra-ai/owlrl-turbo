@@ -1,6 +1,6 @@
 # ADR 0006: Forward axiomatic options without global datatype mutation
 
-Status: Accepted for the candidate native API; publication waits for its release
+Status: Accepted; provider API published in rdflib-turbo 0.2.0a7
 
 Forward `axiomatic_triples` and `datatype_axioms` to native inference for all
 three semantics classes, `DeductiveClosure`, and functional `expand`. Preserve
@@ -21,7 +21,6 @@ This supersedes ADR 0005's rejection of these constructor options. Generalized
 RDF output and the intentional hasKey correction retain ADR 0001's boundaries.
 Diagnostic outcomes and shared Store ownership remain separate runtime work.
 
-The candidate requires the native flags API introduced by rdflib-turbo PR 41.
-Published rdflib-turbo 0.2.0a5 lacks it. Tests use an exact candidate wheel override;
-publishing requires an actual provider release and an accurate dependency minimum.
-Do not claim the unreleased API is supplied by the existing dependency range.
+The native flags API introduced by rdflib-turbo PR 41 is available in published
+0.2.0a7, which is the dependency minimum. CI independently exercises that exact
+registry version; candidate-provider tests retain their exact-wheel override.

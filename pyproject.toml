@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 authors = [{ name = "DataRoad Inc, Delaware, USA, trading as Legra" }]
 dependencies = [
-    "rdflib-turbo>=0.2.0a5",
+    "rdflib-turbo>=0.2.0a7",
 ]
 
 [project.urls]
