@@ -127,9 +127,9 @@ DeductiveClosure(OWLRL_Semantics).expand(graph)  # mutates graph; returns None
 
 `RDFS_Semantics` and `RDFS_OWLRL_Semantics` are also available. Default
 constructor settings use native inference. RDFLib graphs use explicit conversion;
-legacy native Dataset inputs retain their handle. Axiomatic/datatype options,
+native Dataset inputs retain their handle. Axiomatic/datatype options,
 custom rule classes, process-global datatype switches, separate plain Graph
 destinations and the newer Store-backed Graph inference adapter are not yet
 implemented and raise explicit errors. This remains a limited compatibility
 facade with the standard-RDF/hasKey boundaries described in
-[ADR 0002](https://github.com/legra-ai/owlrl-turbo/blob/main/docs/adr/0002-deductive-closure-facade.md).
+[ADR 0005](docs/adr/0005-deductive-closure-facade.md).
