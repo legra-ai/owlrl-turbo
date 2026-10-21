@@ -41,18 +41,6 @@ def test_native_dataset_identity_and_none_semantics():
     assert bool(graph.query("ASK { <urn:x> a <urn:C> }"))
 
 
-@pytest.mark.parametrize(
-    "flag,value",
-    [("improved_datatypes", False)],
-)
-def test_unsupported_configuration_fails_before_mutation(flag, value):
-    graph = source()
-    before = set(graph)
-    with pytest.raises(NotImplementedError, match=flag):
-        owlrl_turbo.DeductiveClosure(owlrl_turbo.OWLRL_Semantics, **{flag: value}).expand(graph)
-    assert set(graph) == before
-
-
 def test_invalid_closure_type_and_custom_rules_are_not_silently_ignored():
     with pytest.raises(ValueError, match="class reference"):
         owlrl_turbo.DeductiveClosure("owlrl")
@@ -201,15 +189,6 @@ def test_functional_expand_does_not_copy_native_store_views():
 
     with pytest.raises(NotImplementedError, match="adapter"):
         owlrl_turbo.expand(StoreView())
-
-
-def test_mutated_configuration_is_validated_when_executed():
-    graph = source()
-    closure = owlrl_turbo.DeductiveClosure(owlrl_turbo.OWLRL_Semantics)
-    closure.improved_datatypes = False
-    with pytest.raises(NotImplementedError, match="improved_datatypes"):
-        closure.expand(graph)
-    assert len(graph) == 2
 
 
 @pytest.mark.parametrize("destination", [None, URIRef("urn:derived")])

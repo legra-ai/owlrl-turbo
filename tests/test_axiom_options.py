@@ -83,3 +83,38 @@ def test_functional_native_options_preserve_nonmutating_default(inference, name,
     converted = result.to_rdflib()
     converted.default_union = True
     assert ordinary(converted) == ordinary(expected)
+
+
+@pytest.mark.parametrize("name", NAMES)
+@pytest.mark.parametrize(
+    "lexical,datatype", [("01", "integer"), ("1.0", "decimal"), ("true", "boolean")]
+)
+def test_improved_datatypes_false_matches_builtin_closure_without_global_mutation(
+    name, lexical, datatype
+):
+    from rdflib.namespace import XSD
+    from rdflib.term import _toPythonMapping
+
+    expected, actual = source("graph"), source("graph")
+    literal = Literal(lexical, datatype=XSD[datatype], normalize=False)
+    expected.add((EX.s, EX.p, literal))
+    actual.add((EX.s, EX.p, literal))
+    before = dict(_toPythonMapping)
+    owlrl.DeductiveClosure(getattr(owlrl, name), improved_datatypes=False).expand(expected)
+    assert dict(_toPythonMapping) == before
+    closure = owlrl_turbo.DeductiveClosure(getattr(owlrl_turbo, name), improved_datatypes=False)
+    assert closure.improved_datatypes is False
+    closure.expand(actual)
+    assert dict(_toPythonMapping) == before
+    assert ordinary(actual) == ordinary(expected)
+
+
+def test_mutated_improved_datatypes_option_and_noop_closure_need_no_conversion_switch():
+    graph = source("graph")
+    closure = owlrl_turbo.DeductiveClosure(None, improved_datatypes=False)
+    assert closure.expand(graph) is None
+    assert len(graph) == 2
+    closure.closure_class = owlrl_turbo.RDFS_Semantics
+    closure.improved_datatypes = True
+    assert closure.expand(graph) is None
+    assert (EX.x, RDF.type, EX.D) in graph

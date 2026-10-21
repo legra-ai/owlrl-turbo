@@ -5,13 +5,6 @@ from rdflib import Graph, URIRef
 from rdflib_turbo import Dataset
 
 
-def _validate_options(improved_datatypes=True):
-    if not improved_datatypes:
-        raise NotImplementedError(
-            "improved_datatypes is not supported by the native inference runtime"
-        )
-
-
 def _expand(graph, mode, destination, axioms=False, daxioms=False):
     options = {"axiomatic_triples": axioms, "datatype_axioms": daxioms}
     if getattr(graph, "_turbo_native_graph", False):
@@ -118,7 +111,6 @@ class DeductiveClosure:
         datatype_axioms=False,
     ):
         _validate_closure_class(closure_class)
-        _validate_options(improved_datatypes)
         self.closure_class = closure_class
         self.improved_datatypes = improved_datatypes
         self.rdfs_closure = rdfs_closure
@@ -127,7 +119,6 @@ class DeductiveClosure:
 
     def expand(self, graph, destination=None):
         _validate_closure_class(self.closure_class)
-        _validate_options(self.improved_datatypes)
         if self.closure_class is not None:
             self.closure_class(
                 graph,
