@@ -137,8 +137,7 @@ implemented and raise explicit errors. This remains a limited compatibility
 facade with the standard-RDF/hasKey boundaries described in
 [ADR 0005](docs/adr/0005-deductive-closure-facade.md).
 
-The new axiom options require the native API introduced by
-[rdflib-turbo PR 41](https://github.com/legra-ai/rdflib-turbo/pull/41). The published
-`0.2.0a5` artifact does not expose this API. This source change must not be released
-until its dependency minimum names a published provider containing that API.
-Candidate testing uses an explicit exact-wheel override.
+The axiom options, diagnostic history and native copy/closure APIs require
+published `rdflib-turbo>=0.2.0a7`. CI installs the exact minimum from the public
+registry and tests both RDFLib closure and independent native Graph expansion.
+Candidate-provider testing uses a separate explicit exact-wheel override.

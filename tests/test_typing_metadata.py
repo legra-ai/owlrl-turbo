@@ -41,11 +41,12 @@ def test_test_extra_runs_current_companion_release():
     assert not requirement.specifier.contains("0.2.7")
 
 
-def test_runtime_requirement_excludes_releases_without_native_delta():
+def test_runtime_requirement_excludes_releases_without_native_closure_apis():
     requirement = next(
         Requirement(item)
         for item in requires("owlrl-turbo")
         if Requirement(item).name == "rdflib-turbo"
     )
-    assert requirement.specifier.contains("0.2.0a5", prereleases=True)
-    assert not requirement.specifier.contains("0.2.0a4", prereleases=True)
+    assert requirement.specifier.contains("0.2.0a7", prereleases=True)
+    assert not requirement.specifier.contains("0.2.0a6", prereleases=True)
+    assert not requirement.specifier.contains("0.2.0a5", prereleases=True)

@@ -1,6 +1,6 @@
 # ADR 0007: Retain native diagnostic outcomes at the class boundary
 
-Status: Accepted for the candidate provider API; publication waits for its release
+Status: Accepted; provider API published in rdflib-turbo 0.2.0a7
 
 Inference produces ordinary RDF diagnostic nodes and a frozen invocation outcome
 in the shared native runtime. The facade consumes that outcome after successful
@@ -20,9 +20,9 @@ atomic commit boundary. Arbitrary third-party RDFLib Store writes retain ADR
 0005's explicit writeback atomicity limitation.
 
 The provider carries prior_error_messages and last-inference metadata alongside
-ADR 0006's per-call flags. The released 0.2.0a5 dependency floor alone does not
-promise this candidate API. Exact provider wheel overrides validate the candidate;
-publication requires its actual release and an accurate dependency minimum.
+ADR 0006's per-call flags. Published rdflib-turbo 0.2.0a7 supplies these APIs and
+is the dependency minimum. CI exercises that exact registry version independently
+of candidate-provider wheel overrides.
 
 Generalized RDF and the intentional hasKey correction retain ADR 0001's limits.
 Initially multi-valued RDF list selection remains dependent on underlying graph
