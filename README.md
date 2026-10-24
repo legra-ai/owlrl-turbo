@@ -86,7 +86,8 @@ turbo releases. Exact wheels, dependency locks, raw timings and RSS are retained
 `expand(graph, inference="owlrl", inplace=False, destination=None)` accepts
 rdflib_turbo.Dataset or RDFLib Graph/Dataset. Modes are rdfs, owlrl and both.
 The return value has the input kind. Native inputs remain native between calls;
-RDFLib inputs require a copy into the native runtime and conversion back.
+RDFLib inputs require one copy into the native runtime. Inplace calls stream only
+changed rows back; nonmutating calls explicitly export their independent result.
 RDFLib namespaces and blank-node identities are preserved. Named input contexts
 are retained. RDFLib Dataset inference defaults to urn:owlrl-turbo:inference;
 use destination to explicitly name the output graph for Dataset inputs.
@@ -98,16 +99,18 @@ mutation API; external RDFLib stores do not acquire a new transaction guarantee.
 
 This is **not a complete drop-in owlrl replacement**. A limited DeductiveClosure
 class interface supports native axiomatic and datatype-axiom options. Custom Python rule
-hooks, owl:imports loading, OWL-RL extensions
+hooks and OWL-RL extensions
 and complete inconsistency diagnostics are not exposed. Inference initialization
 follows pyshacl-turbo's pinned modes. Full OWL-RL conformance and output parity
 are not claimed.
 
-Output stays within standard RDF: literal subjects and non-IRI predicates are
-excluded, including generalized triples that Python owlrl may emit. Valid
-literal-valued consequences remain part of the contract. Native
+Programmatic inference retains generalized RDF terms, including literal subjects.
+Strict document formats retain their own syntax contracts. Explicit
+`interpret_owl_imports` parsing is separate from closure execution. Native
 owl:hasKey checks every property, intentionally differing from the pinned Python
-reasoner's incomplete comparison. See [ADR 0001](docs/adr/0001-inference-contract.md).
+reasoner's incomplete comparison. The canonical Dataset and streaming writeback
+source integration still requires coordinated installed-wheel acceptance; see
+[ADR 0011](docs/adr/0011-stream-private-inference-changes.md).
 
 For SHACL with matching shared-runtime releases, pass the native dataset directly
 to `pyshacl_turbo.validate()`. Explicit `expanded.to_rdflib()` conversion copies the
