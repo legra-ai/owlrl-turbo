@@ -2,7 +2,7 @@
 
 import owlrl
 import pytest
-from rdflib import BNode, Literal, Namespace, URIRef
+from rdflib import BNode, Namespace, URIRef
 from rdflib import Dataset as ReferenceDataset
 from rdflib import Graph as ReferenceGraph
 from rdflib.compare import isomorphic
@@ -45,8 +45,7 @@ def ordinary(graph):
     )
     result = ReferenceGraph()
     for triple in triples:
-        if not isinstance(triple[0], Literal):
-            result.add(triple)
+        result.add(triple)
     return result
 
 

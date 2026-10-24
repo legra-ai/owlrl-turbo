@@ -4,7 +4,7 @@ import decimal
 
 import owlrl
 import pytest
-from rdflib import RDF, Graph, Literal, Namespace
+from rdflib import RDF, Graph, Namespace
 from rdflib import Dataset as ReferenceDataset
 from rdflib.compare import isomorphic
 from rdflib_turbo import Dataset
@@ -37,8 +37,7 @@ def ordinary(graph):
         else graph
     )
     for triple in triples:
-        if not isinstance(triple[0], Literal):
-            result.add(triple)
+        result.add(triple)
     return result
 
 

@@ -82,9 +82,12 @@ def test_semantics_direct_closure_and_constructor_attributes():
 
 def test_failure_atomicity_on_malformed_list():
     graph = source()
-    graph.parse(data="<urn:C> <http://www.w3.org/2002/07/owl#hasKey> _:broken .", format="turtle")
+    graph.parse(
+        data="<urn:C> <http://www.w3.org/2002/07/owl#hasKey> _:broken . _:broken <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:key>; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:broken .",
+        format="turtle",
+    )
     before = set(graph)
-    with pytest.raises(ValueError, match="Malformed RDF list"):
+    with pytest.raises(ValueError, match="recursive rdf:rest"):
         owlrl_turbo.DeductiveClosure(owlrl_turbo.OWLRL_Semantics).expand(graph)
     assert set(graph) == before
 
@@ -94,18 +97,18 @@ def test_rdfs_constructor_flag_obeys_actual_semantics_class(name):
     expected, actual = source(), source()
     owlrl.DeductiveClosure(getattr(owlrl, name), rdfs_closure=True).expand(expected)
     owlrl_turbo.DeductiveClosure(getattr(owlrl_turbo, name), rdfs_closure=True).expand(actual)
-    assert set(actual) == {t for t in expected if not isinstance(t[0], Literal)}
+    assert set(actual) == set(expected)
 
 
-def test_separate_plain_graph_destination_requires_snapshot_rule_support():
+def test_separate_plain_graph_destination_uses_only_source_rule_premises():
     expected, actual = source(), source()
     expected_dest = Graph(store=expected.store, identifier=EX.destination)
     actual_dest = Graph(store=actual.store, identifier=EX.destination)
     owlrl.DeductiveClosure(owlrl.RDFS_Semantics).expand(expected, expected_dest)
     assert (EX.x, RDF.type, EX.D) in expected_dest
-    with pytest.raises(NotImplementedError, match="separate Graph destination"):
-        owlrl_turbo.DeductiveClosure(owlrl_turbo.RDFS_Semantics).expand(actual, actual_dest)
-    assert len(actual) == 2 and len(actual_dest) == 0
+    owlrl_turbo.DeductiveClosure(owlrl_turbo.RDFS_Semantics).expand(actual, actual_dest)
+    assert set(actual) == set(expected)
+    assert set(actual_dest) == set(expected_dest)
 
 
 @pytest.mark.parametrize(
@@ -129,7 +132,7 @@ def test_invalid_graph_and_destination_contracts(kind):
         with pytest.raises(TypeError, match="native Graph"):
             closure.expand(StoreView())
     elif kind == "native-destination":
-        with pytest.raises(TypeError, match="IRI"):
+        with pytest.raises(ValueError, match="share the same native store"):
             closure.expand(Dataset(), Graph())
     elif kind == "wrong-input":
         with pytest.raises(TypeError, match="Expected"):
@@ -199,7 +202,7 @@ def test_complete_dataset_closure_contexts_match_reference(destination):
         graph.graph(EX.g).add((EX.x, RDF.type, EX.C))
     owlrl.DeductiveClosure(owlrl.RDFS_Semantics).expand(expected, destination)
     owlrl_turbo.DeductiveClosure(owlrl_turbo.RDFS_Semantics).expand(actual, destination)
-    ordinary = {q for q in expected.quads() if not isinstance(q[0], Literal)}
+    ordinary = set(expected.quads())
     assert set(actual.quads()) == ordinary
 
 
@@ -221,21 +224,31 @@ def test_combined_semantics_inherits_both_and_forces_rdfs():
 @pytest.mark.parametrize("multigraph", [False, True])
 def test_class_interface_exports_only_inference_delta(monkeypatch, multigraph):
     graph = RDFLibDataset() if multigraph else source()
+    expected = RDFLibDataset() if multigraph else source()
     if multigraph:
-        graph.graph(EX.input).add((EX.C, RDFS.subClassOf, EX.D))
-        graph.graph(EX.input).add((EX.x, RDF.type, EX.C))
-    original_export = Dataset.to_rdflib
-    exported = []
+        for dataset in (graph, expected):
+            dataset.graph(EX.input).add((EX.C, RDFS.subClassOf, EX.D))
+            dataset.graph(EX.input).add((EX.x, RDF.type, EX.C))
+    originals = set(graph.quads()) if multigraph else set(graph)
+    original_add = graph.store.add
+    written = []
 
-    def delta_only(dataset):
-        result = original_export(dataset)
-        assert not any(result.quads((EX.C, RDFS.subClassOf, EX.D, None)))
-        assert not any(result.quads((EX.x, RDF.type, EX.C, None)))
-        exported.append(result)
-        return result
+    def delta_only(triple, context, quoted=False):
+        row = (*triple, context.identifier) if multigraph else triple
+        assert row not in originals, "Original physical statement was written again"
+        written.append(row)
+        return original_add(triple, context, quoted)
 
-    monkeypatch.setattr(Dataset, "to_rdflib", delta_only)
+    def forbid_export(*args, **kwargs):
+        raise AssertionError("Class closure must stream changes without an intermediate Dataset")
+
+    monkeypatch.setattr(Dataset, "to_rdflib", forbid_export)
+    monkeypatch.setattr(graph.store, "add", delta_only)
+    owlrl.DeductiveClosure(owlrl.RDFS_Semantics).expand(expected)
     owlrl_turbo.DeductiveClosure(owlrl_turbo.RDFS_Semantics).expand(graph)
-    assert len(exported) == 1
+    assert written
+    assert (set(graph.quads()) if multigraph else set(graph)) == (
+        set(expected.quads()) if multigraph else set(expected)
+    )
     target = graph.default_graph if multigraph else graph
     assert (EX.x, RDF.type, EX.D) in target

@@ -22,9 +22,7 @@ def source(kind):
 
 
 def ordinary(graph):
-    return {
-        triple for triple in graph.triples((None, None, None)) if not isinstance(triple[0], Literal)
-    }
+    return {triple for triple in graph.triples((None, None, None))}
 
 
 @pytest.mark.parametrize("name", NAMES)
@@ -45,7 +43,7 @@ def test_closure_axiomatic_options_match_complete_reference(name, axioms, daxiom
     if kind == "graph":
         assert ordinary(actual) == ordinary(expected)
     else:
-        assert set(actual.quads()) == {q for q in expected.quads() if not isinstance(q[0], Literal)}
+        assert set(actual.quads()) == set(expected.quads())
 
 
 @pytest.mark.parametrize("name", NAMES)

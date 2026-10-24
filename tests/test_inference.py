@@ -1,5 +1,5 @@
 import pytest
-from rdflib import Graph, Literal, URIRef
+from rdflib import Graph, URIRef
 from rdflib.namespace import RDF
 from rdflib_turbo import Dataset
 
@@ -37,13 +37,22 @@ def test_rdflib_graph_and_pyshacl_pipeline():
     assert validate(result, shacl_graph=shapes)[0]
 
 
-def test_named_inference_destination_and_standard_rdf():
+def test_named_inference_destination_preserves_complete_reference_relation():
     dataset = Dataset().parse(
         data="<urn:g> { " + SCHEMA + ' <urn:x> <urn:p> "hello" . }', format="trig"
     )
     result = expand(dataset, inference="rdfs", destination="urn:inference")
     assert bool(result.query("ASK { GRAPH <urn:inference> { <urn:x> a <urn:D> } }"))
-    assert all(not isinstance(s, Literal) for s, p, o, g in result.to_rdflib().quads())
+    from owlrl import DeductiveClosure, RDFS_Semantics
+    from rdflib import Dataset as ReferenceDataset
+
+    expected = ReferenceDataset().parse(
+        data="<urn:g> { " + SCHEMA + ' <urn:x> <urn:p> "hello" . }', format="trig"
+    )
+    DeductiveClosure(RDFS_Semantics, improved_datatypes=False).expand(
+        expected, destination=URIRef("urn:inference")
+    )
+    assert set(result.to_rdflib().quads()) == set(expected.quads())
 
 
 def test_invalid_mode_fails_without_mutation():
@@ -56,10 +65,11 @@ def test_invalid_mode_fails_without_mutation():
 
 def test_malformed_key_does_not_commit_partial_closure():
     dataset = Dataset().parse(
-        data=SCHEMA + " <urn:C> <http://www.w3.org/2002/07/owl#hasKey> _:broken ."
+        data=SCHEMA
+        + " <urn:C> <http://www.w3.org/2002/07/owl#hasKey> _:broken . _:broken <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:key>; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:broken ."
     )
     before = dataset.serialize()
-    with pytest.raises(ValueError, match="Malformed RDF list"):
+    with pytest.raises(ValueError, match="recursive rdf:rest"):
         expand(dataset, inplace=True)
     assert dataset.serialize() == before
 
@@ -71,7 +81,7 @@ def test_full_rdfs_closure_matches_reference_standard_rdf():
     expected = Graph()
     expected += source
     DeductiveClosure(RDFS_Semantics).expand(expected)
-    ordinary = {(s, p, o) for s, p, o in expected if not isinstance(s, Literal)}
+    ordinary = set(expected)
     assert set(expand(source, inference="rdfs")) == ordinary
 
 
