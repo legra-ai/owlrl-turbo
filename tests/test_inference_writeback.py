@@ -1,12 +1,16 @@
 """In-place RDFLib inference converts and writes only native additions."""
 
+from contextlib import closing
+
 import owlrl
 import pytest
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph, URIRef
+from rdflib.namespace import RDF
 from rdflib_turbo import Dataset
 
 from owlrl_turbo import expand
+from owlrl_turbo._closure import _publish_changes
 
 SCHEMA = """
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -74,3 +78,28 @@ def test_inplace_failure_preserves_original_graph(multigraph):
         expand(source, inplace=True)
     after = set(source.quads()) if multigraph else set(source)
     assert after == before
+
+
+@pytest.mark.parametrize("graph_pair", [False, True])
+def test_real_named_inference_changes_reject_unexpected_publication_scope(graph_pair):
+    source, destination = URIRef("urn:input"), URIRef("urn:delta")
+    target = Graph()
+    target.add((URIRef("urn:sentinel"), URIRef("urn:p"), URIRef("urn:unchanged")))
+    before = set(target)
+    namespaces = set(target.namespaces())
+    with closing(Dataset()) as owner:
+        owner.graph(source).parse(data=SCHEMA, format="turtle")
+        assert (URIRef("urn:item"), RDF.type, URIRef("urn:Parent")) not in owner.graph(destination)
+        with closing(owner._capture_changes(inference="rdfs", destination=destination)) as changes:
+            assert (URIRef("urn:item"), RDF.type, URIRef("urn:Parent")) in owner.graph(destination)
+            endpoints = {URIRef("urn:unrelated"): target} if graph_pair else None
+            message = (
+                "Unexpected inference delta outside the graph pair"
+                if graph_pair
+                else "Unexpected named delta for an ordinary Graph"
+            )
+            with pytest.raises(RuntimeError) as failure:
+                _publish_changes(target, changes, endpoints=endpoints)
+            assert str(failure.value) == message
+            assert set(target) == before
+            assert set(target.namespaces()) == namespaces
