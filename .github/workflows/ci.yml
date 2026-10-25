@@ -54,7 +54,7 @@ jobs:
           uv build --wheel --out-dir wheel-dist source-dist/*.tar.gz || exit 1
           mkdir dist || exit 1
           cp source-dist/* wheel-dist/* dist/ || exit 1
-      - run: uv run --locked --only-group packaging twine check --strict dist/*
+      - run: uv --project tools/packaging run --locked --only-group packaging twine check --strict dist/*
       - run: uv run --no-project python scripts/release_packages.py check-build
       - uses: actions/upload-artifact@v7
         with:

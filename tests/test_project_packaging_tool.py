@@ -17,7 +17,8 @@ def test_release_twine_uses_only_the_locked_packaging_group():
     checks = [command for command in commands if "twine check" in command]
     assert checks
     assert all(
-        "uv run --locked --only-group packaging twine check --strict" in command
+        "uv --project tools/packaging run --locked --only-group packaging twine check --strict"
+        in command
         for command in checks
     )
     assert not any("uv tool run" in command for command in commands)
