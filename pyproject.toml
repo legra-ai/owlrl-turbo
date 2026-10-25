@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.27,<2"]
+requires = ["hatchling>=1.32.3,<2"]
 build-backend = "hatchling.build"
 
 [project]
@@ -27,6 +27,7 @@ test = [
     "pyshacl-turbo>=0.4.1",
     "ruff>=0.12",
     "packaging>=26.3",
+    "pyyaml>=6,<7",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -50,4 +51,5 @@ fail_under = 100
 show_missing = true
 
 [dependency-groups]
+packaging = ["twine==7.0.0"]
 dev = ["mypy>=1.15,<3"]

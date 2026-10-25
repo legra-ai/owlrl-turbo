@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -47,14 +47,14 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - name: Build wheel from the source archive
         run: |
           uv build --sdist --out-dir source-dist || exit 1
           uv build --wheel --out-dir wheel-dist source-dist/*.tar.gz || exit 1
           mkdir dist || exit 1
           cp source-dist/* wheel-dist/* dist/ || exit 1
-      - run: uv tool run --from twine==7.0.0 twine check --strict dist/*
+      - run: uv run --locked --only-group packaging twine check --strict dist/*
       - run: uv run --no-project python scripts/release_packages.py check-build
       - uses: actions/upload-artifact@v7
         with:
@@ -76,7 +76,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - run: uv run --locked --extra test ruff check src tests scripts
       - run: uv run --locked --extra test ruff format --check src tests scripts
   wheels:
@@ -105,7 +105,7 @@ jobs:
           python-version: '3.13'
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/download-artifact@v8
         with:
           name: release-packages
@@ -123,7 +123,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
@@ -141,7 +141,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - name: Require all release checks
         env:
           RESULTS: ${{ toJSON(needs) }}
@@ -169,7 +169,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
@@ -218,7 +218,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
