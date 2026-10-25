@@ -53,7 +53,7 @@ def interpret_owl_imports(iformat: str, graph: Graph) -> None:
     matching owlrl. Parsing errors propagate; earlier mutations remain visible.
     DeductiveClosure does not invoke this helper automatically.
     """
-    dependencies = {}
+    dependencies: dict[str, set[str]] = {}
     while imports := list(graph.triples((None, OWL.imports, None))):
         for statement in imports:
             graph.remove(statement)
