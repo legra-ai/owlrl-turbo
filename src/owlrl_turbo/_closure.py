@@ -1,9 +1,14 @@
 """The owlrl class interface over the native inference runtime."""
 
+import json
+
 from rdflib import Dataset as RDFLibDataset
 from rdflib import Graph, URIRef
 from rdflib_turbo import Dataset, StoreDataset
 from rdflib_turbo import Graph as NativeGraph
+from rdflib_turbo._native import NativeStore
+from rdflib_turbo._operations import _encode
+from rdflib_turbo._reads import _INPUT_TERMS, _TERM_FACTORIES
 
 
 def _destination(graph, destination):
@@ -18,10 +23,6 @@ def _destination(graph, destination):
         return NativeGraph(store=graph.store, identifier=destination, bind_namespaces="none")
     if getattr(graph, "_turbo_native_graph", False):
         raise TypeError("Expected a native Graph or StoreDataset instance")
-    if isinstance(graph, Dataset):
-        if destination is not None and not isinstance(destination, (str, URIRef)):
-            raise TypeError("Native Dataset destination must be an IRI")
-        return destination
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
@@ -34,13 +35,13 @@ def _destination(graph, destination):
     if isinstance(destination, (str, URIRef)):
         if not multigraph:
             raise ValueError("IRI destinations require a Dataset")
-        return graph.graph(URIRef(destination))
+        # Match RDFLib's identifier normalization and preserve explicit blank
+        # nodes without registering an empty destination before inference runs.
+        return graph.get_context(destination)
     if not isinstance(destination, Graph):
         raise TypeError("Expected an RDFLib Graph or IRI destination")
     if destination.store is not graph.store:
         raise ValueError("The source and destination graphs must share the same backing store")
-    if not multigraph and destination.identifier != graph.identifier:
-        raise NotImplementedError("A separate Graph destination requires snapshot rule support")
     return destination
 
 
@@ -59,26 +60,79 @@ def _expand(graph, mode, destination, axioms=False, daxioms=False, prior_error_m
     if isinstance(graph, (NativeGraph, StoreDataset)):
         graph.infer(inference=mode, destination=target, **options)
         return graph.last_inference
-    if isinstance(graph, Dataset):
-        graph.infer(inference=mode, destination=target, **options)
-        return graph._last_inference
     multigraph = isinstance(graph, RDFLibDataset)
-    # Ordinary RDFLib input conversion owns its native inference operation.
-    # Native Store inputs returned above retain their original transaction.
+    if not multigraph and target.identifier != graph.identifier:
+        return _expand_graph_pair(graph, target, mode, axioms, daxioms, prior_error_messages)
     expanded = Dataset.from_rdflib(graph)
-    if multigraph and target is not graph.default_graph:
-        delta = expanded.infer_delta(inference=mode, destination=str(target.identifier), **options)
-        triples = delta.to_rdflib().graph(target.identifier)
-    else:
-        delta = expanded.infer_delta(inference=mode, **options)
-        triples = delta.to_rdflib().default_graph
-    # Native inference completes before touching the caller's RDFLib store.
-    for triple in triples:
-        target.add(triple)
-    _bind_diagnostics(target, expanded._last_inference.error_messages)
-    if multigraph:
-        graph.default_union = True
-    return expanded._last_inference
+    changes = expanded._capture_changes(
+        inference=mode,
+        destination=target.identifier if multigraph else None,
+        **options,
+    )
+    try:
+        _publish_changes(graph, changes)
+        _bind_diagnostics(target, changes.outcome.error_messages)
+        if multigraph:
+            graph.default_union = True
+        return changes.outcome
+    finally:
+        changes.close()
+
+
+def _expand_graph_pair(source, target, mode, axioms, daxioms, prior_error_messages):
+    """Import only these two physical endpoints into one unpublished owner."""
+
+    def records():
+        for graph in (source, target):
+            for subject, predicate, obj in graph:
+                yield subject, predicate, obj, graph.identifier
+
+    owner = NativeStore.from_records(
+        records(), (source.identifier, target.identifier), _INPUT_TERMS
+    )
+    changes = None
+    try:
+        changes = owner._infer_changes(
+            mode,
+            (json.dumps(_encode(source.identifier)), json.dumps(_encode(target.identifier))),
+            _TERM_FACTORIES,
+            options=(axioms, daxioms),
+            prior_error_messages=prior_error_messages,
+        )
+        _publish_changes(
+            source, changes, endpoints={source.identifier: source, target.identifier: target}
+        )
+        _bind_diagnostics(target, changes.outcome.error_messages)
+        return changes.outcome
+    finally:
+        try:
+            if changes is not None:
+                changes.close()
+        finally:
+            owner.close()
+
+
+def _publish_changes(graph, changes, *, endpoints=None):
+    """Stream only final changed facts; never export the whole closure."""
+    multigraph = isinstance(graph, RDFLibDataset)
+    for next_batch, remove in ((changes.next_removals, True), (changes.next_additions, False)):
+        while True:
+            rows, done = next_batch()
+            for subject, predicate, obj, context in rows:
+                if endpoints is not None:
+                    if context not in endpoints:
+                        raise RuntimeError("Unexpected inference delta outside the graph pair")
+                    target = endpoints[context]
+                elif multigraph:
+                    target = graph.default_graph if context is None else graph.graph(context)
+                elif context is None:
+                    target = graph
+                else:
+                    raise RuntimeError("Unexpected named delta for an ordinary Graph")
+                operation = target.remove if remove else target.add
+                operation((subject, predicate, obj))
+            if done:
+                break
 
 
 class _Semantics:
@@ -110,13 +164,13 @@ class _Semantics:
 
 
 class RDFS_Semantics(_Semantics):
-    """RDFS closure, restricted to standard RDF output."""
+    """Native RDFS closure over the supplied graph scope."""
 
     _mode = "rdfs"
 
 
 class OWLRL_Semantics(_Semantics):
-    """OWL-RL closure with the documented standard-RDF/hasKey boundaries."""
+    """Native OWL-RL closure over the supplied graph scope."""
 
     _mode = "owlrl"
 

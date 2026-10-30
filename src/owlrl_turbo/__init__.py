@@ -15,6 +15,7 @@ from ._closure import (
     RDFS_Semantics,
     _bind_diagnostics,
     _expand,
+    _publish_changes,
     return_closure_class,
 )
 from ._imports import AUTO, JSON, RDFA, RDFXML, TURTLE, interpret_owl_imports
@@ -126,9 +127,6 @@ def expand(
         return result
     if getattr(graph, "_turbo_native_graph", False):
         raise TypeError("Expected a native Graph or StoreDataset instance")
-    if isinstance(graph, Dataset):
-        native_result = graph if inplace else graph.copy()
-        return native_result.infer(inference=inference, destination=destination, **options)
     if not isinstance(graph, Graph):
         raise TypeError("Expected rdflib_turbo.Dataset or an RDFLib Graph/Dataset")
     multigraph = isinstance(graph, RDFLibDataset)
@@ -140,25 +138,16 @@ def expand(
         destination = "urn:owlrl-turbo:inference"
     native_source = Dataset.from_rdflib(graph)
     if inplace:
-        expanded = native_source.infer_delta(
+        changes = native_source._capture_changes(
             inference=inference, destination=destination, **options
-        ).to_rdflib()
-    else:
-        expanded = native_source.infer(
-            inference=inference, destination=destination, **options
-        ).to_rdflib()
-    result = expanded if multigraph else expanded.default_graph
-    if inplace:
-        if isinstance(graph, RDFLibDataset):
-            for s, p, o, g in expanded.quads():
-                target = (
-                    graph.default_graph
-                    if g == expanded.default_graph.identifier
-                    else graph.graph(g)
-                )
-                target.add((s, p, o))
-        else:
-            graph += expanded.default_graph
-        _bind_diagnostics(graph, native_source._last_inference.error_messages)
-        return graph
-    return result
+        )
+        try:
+            _publish_changes(graph, changes)
+            _bind_diagnostics(graph, changes.outcome.error_messages)
+            return graph
+        finally:
+            changes.close()
+    expanded = native_source.infer(
+        inference=inference, destination=destination, **options
+    ).to_rdflib()
+    return expanded if multigraph else expanded.default_graph

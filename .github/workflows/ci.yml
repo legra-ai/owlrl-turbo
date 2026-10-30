@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -47,15 +47,32 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - name: Build wheel from the source archive
         run: |
           uv build --sdist --out-dir source-dist || exit 1
           uv build --wheel --out-dir wheel-dist source-dist/*.tar.gz || exit 1
           mkdir dist || exit 1
           cp source-dist/* wheel-dist/* dist/ || exit 1
-      - run: uv tool run --from twine==7.0.0 twine check --strict dist/*
+      - run: uv --project tools/packaging run --locked --only-group packaging twine check --strict dist/*
       - run: uv run --no-project python scripts/release_packages.py check-build
+      - uses: actions/checkout@v7
+        with:
+          repository: legra-ai/rdflib-turbo
+          ref: d2692efc768554473a65eece7d0fce6836b47f57
+          path: rdflib-turbo
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13.16'
+      - name: Prepare the provider's original facade and YAML cohort
+        working-directory: rdflib-turbo
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: provider-facade-cohort
+          path: ${{ runner.temp }}/candidate-facade-evidence
+          include-hidden-files: true
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: release-packages
@@ -76,7 +93,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - run: uv run --locked --extra test ruff check src tests scripts
       - run: uv run --locked --extra test ruff format --check src tests scripts
   wheels:
@@ -94,25 +111,32 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: 626139bff810793f4aa6aad46383c5368cb9ec6d
-          path: paired-runtime
+          ref: d2692efc768554473a65eece7d0fce6836b47f57
+          path: rdflib-turbo
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           toolchain: 1.99.1
-          cache-key: owl-provider-${{ hashFiles('paired-runtime/vendor/**') }}
+          cache-key: owl-provider-${{ hashFiles('rdflib-turbo/vendor/**') }}
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/download-artifact@v8
         with:
           name: release-packages
           path: dist
-      - run: uv run --no-project python scripts/test_wheel.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: provider-facade-cohort
+          path: ${{ runner.temp }}/candidate-facade-evidence
+      - name: Verify the cohort and arrange its exact declaration
+        working-directory: rdflib-turbo
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
+      - run: uv run --no-project --python 3.13.16 python -B scripts/test_wheel.py
         env:
-          OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/paired-runtime
+          OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/rdflib-turbo
           CARGO_TARGET_DIR: ${{ github.workspace }}/provider-target
   minimum-runtime:
     needs: [prepare, build]
@@ -123,7 +147,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
@@ -141,7 +165,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - name: Require all release checks
         env:
           RESULTS: ${{ toJSON(needs) }}
@@ -169,7 +193,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
@@ -218,7 +242,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
-          version: "0.13.1"
+          version: "0.13.5"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}

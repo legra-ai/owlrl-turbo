@@ -1,13 +1,16 @@
 """In-place RDFLib inference converts and writes only native additions."""
 
-import json
+from contextlib import closing
 
+import owlrl
 import pytest
 from rdflib import Dataset as RDFLibDataset
-from rdflib import Graph
+from rdflib import Graph, URIRef
+from rdflib.namespace import RDF
 from rdflib_turbo import Dataset
 
 from owlrl_turbo import expand
+from owlrl_turbo._closure import _publish_changes
 
 SCHEMA = """
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -23,31 +26,25 @@ def source_graph(multigraph):
 
 
 @pytest.mark.parametrize("multigraph", [False, True])
-def test_inplace_conversion_never_decodes_original_quads(monkeypatch, multigraph):
+def test_inplace_writeback_never_materializes_an_intermediate_dataset(monkeypatch, multigraph):
     source = source_graph(multigraph)
-    expected = expand(source, inference="rdfs")
+    expected = source_graph(multigraph)
+    destination = URIRef("urn:owlrl-turbo:inference") if multigraph else None
+    owlrl.DeductiveClosure(owlrl.RDFS_Semantics, improved_datatypes=False).expand(
+        expected, destination=destination
+    )
     expected_quads = set(expected.quads()) if multigraph else set(expected)
-    originals = {
-        json.dumps(quad, sort_keys=True)
-        for quad in json.loads(Dataset.from_rdflib(source)._native.quads_json())
-    }
-    original_converter = Dataset.to_rdflib
-    conversions = []
 
-    def convert_additions(dataset):
-        exported = {
-            json.dumps(quad, sort_keys=True) for quad in json.loads(dataset._native.quads_json())
-        }
-        assert not exported.intersection(originals), "Original quads reached RDFLib conversion"
-        conversions.append(len(exported))
-        return original_converter(dataset)
+    def forbid_intermediate_output(*args, **kwargs):
+        raise AssertionError("Inplace writeback must stream native changes directly")
 
-    monkeypatch.setattr(Dataset, "to_rdflib", convert_additions)
+    monkeypatch.setattr(Dataset, "to_rdflib", forbid_intermediate_output)
+    monkeypatch.setattr(Dataset, "infer_delta", forbid_intermediate_output)
     assert expand(source, inference="rdfs", inplace=True) is source
     actual_quads = set(source.quads()) if multigraph else set(source)
     assert actual_quads == expected_quads
-    assert len(conversions) == 1
-    assert conversions[0] > 0
+    if multigraph:
+        assert set(source.graphs()) == set(expected.graphs())
 
 
 @pytest.mark.parametrize("multigraph", [False, True])
@@ -73,10 +70,36 @@ def test_inplace_failure_preserves_original_graph(multigraph):
     source = source_graph(multigraph)
     target = source.graph("urn:input") if multigraph else source
     target.parse(
-        data="<urn:Class> <http://www.w3.org/2002/07/owl#hasKey> _:broken .", format="turtle"
+        data="<urn:Class> <http://www.w3.org/2002/07/owl#hasKey> _:broken . _:broken <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:key>; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:broken .",
+        format="turtle",
     )
     before = set(source.quads()) if multigraph else set(source)
-    with pytest.raises(ValueError, match="Malformed RDF list"):
+    with pytest.raises(ValueError, match="recursive rdf:rest"):
         expand(source, inplace=True)
     after = set(source.quads()) if multigraph else set(source)
     assert after == before
+
+
+@pytest.mark.parametrize("graph_pair", [False, True])
+def test_real_named_inference_changes_reject_unexpected_publication_scope(graph_pair):
+    source, destination = URIRef("urn:input"), URIRef("urn:delta")
+    target = Graph()
+    target.add((URIRef("urn:sentinel"), URIRef("urn:p"), URIRef("urn:unchanged")))
+    before = set(target)
+    namespaces = set(target.namespaces())
+    with closing(Dataset()) as owner:
+        owner.graph(source).parse(data=SCHEMA, format="turtle")
+        assert (URIRef("urn:item"), RDF.type, URIRef("urn:Parent")) not in owner.graph(destination)
+        with closing(owner._capture_changes(inference="rdfs", destination=destination)) as changes:
+            assert (URIRef("urn:item"), RDF.type, URIRef("urn:Parent")) in owner.graph(destination)
+            endpoints = {URIRef("urn:unrelated"): target} if graph_pair else None
+            message = (
+                "Unexpected inference delta outside the graph pair"
+                if graph_pair
+                else "Unexpected named delta for an ordinary Graph"
+            )
+            with pytest.raises(RuntimeError) as failure:
+                _publish_changes(target, changes, endpoints=endpoints)
+            assert str(failure.value) == message
+            assert set(target) == before
+            assert set(target.namespaces()) == namespaces
