@@ -94,7 +94,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: 626139bff810793f4aa6aad46383c5368cb9ec6d
+          ref: 2e7b4048a792f496b86cbc9ecde00d921d9d03f4
           path: paired-runtime
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
@@ -110,7 +110,13 @@ jobs:
         with:
           name: release-packages
           path: dist
-      - run: uv run --no-project python scripts/test_wheel.py
+      - name: Prepare the provider's original facade and YAML cohort
+        working-directory: paired-runtime
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/provider-cohort"
+      - name: Verify the cohort and arrange its exact declaration
+        working-directory: paired-runtime
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/provider-cohort" --environment-file "$GITHUB_ENV"
+      - run: uv run --no-project --python 3.13.16 python -B scripts/test_wheel.py
         env:
           OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/paired-runtime
           CARGO_TARGET_DIR: ${{ github.workspace }}/provider-target
