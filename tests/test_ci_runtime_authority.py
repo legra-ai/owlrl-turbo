@@ -1,11 +1,17 @@
 """The shared provider cohort supplies original YAML and exact facade authorities."""
 
+import tomllib
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-PROVIDER = "2e7b4048a792f496b86cbc9ecde00d921d9d03f4"
+PROVIDER = "d2692efc768554473a65eece7d0fce6836b47f57"
+
+
+def test_runtime_floor_requires_the_published_scoped_capture_provider():
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    assert project["dependencies"] == ["rdflib-turbo>=0.2.0a20"]
 
 
 def steps(filename, job):
