@@ -44,8 +44,13 @@ jobs:
         run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
       - name: Verify the cohort and arrange its exact declaration
         run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
+      - name: Build this OWL companion from its original source archive
+        working-directory: coverage-companion-owlrl
+        run: |
+          uv build --sdist --out-dir ../coverage-runtime/native-coverage/companion-originals/source || exit 1
+          uv build --wheel --out-dir ../coverage-runtime/native-coverage/companion-originals/wheel ../coverage-runtime/native-coverage/companion-originals/source/*.tar.gz || exit 1
       - run: cargo install cargo-llvm-cov --version 0.9.1 --locked
-      - run: uv run --no-project --python 3.13.16 python -B scripts/native_coverage.py --shacl-source "$SHACL_SOURCE" --shacl-wheel "$SHACL_WHEEL" --shacl-candidate-receipt "$SHACL_CANDIDATE_RECEIPT" --shacl-base-revision "$SHACL_BASE_REVISION" --yaml-authority "$YAML_AUTHORITY" --owlrl-source ../coverage-companion-owlrl
+      - run: uv run --no-project --python 3.13.16 python -B scripts/native_coverage.py --python 3.13.16 --shacl-source "$SHACL_SOURCE" --shacl-wheel "$SHACL_WHEEL" --shacl-candidate-receipt "$SHACL_CANDIDATE_RECEIPT" --shacl-base-revision "$SHACL_BASE_REVISION" --yaml-authority "$YAML_AUTHORITY" --owlrl-source ../coverage-companion-owlrl --owlrl-wheel native-coverage/companion-originals/wheel/owlrl_turbo-*.whl
       - uses: actions/upload-artifact@v7
         if: always()
         with:

@@ -80,3 +80,25 @@ def test_wheel_build_arranges_the_same_original_declaration_before_uv():
     for step in sequence:
         if "ci_facade.py " in step.get("run", ""):
             assert step["working-directory"] == "paired-runtime"
+
+
+def test_coverage_builds_its_own_original_owl_companion_before_measurement():
+    sequence = steps("native-coverage.yml", "coverage")
+    builds = [
+        (i, step) for i, step in enumerate(sequence) if "uv build --sdist" in step.get("run", "")
+    ]
+    assert len(builds) == 1
+    build_index, build = builds[0]
+    assert build["working-directory"] == "coverage-companion-owlrl"
+    assert "uv build --wheel" in build["run"]
+    assert "../coverage-runtime/native-coverage/companion-originals/source/*.tar.gz" in build["run"]
+    executions = [
+        (i, step["run"])
+        for i, step in enumerate(sequence)
+        if "scripts/native_coverage.py" in step.get("run", "")
+    ]
+    assert len(executions) == 1
+    execution_index, command = executions[0]
+    assert build_index < execution_index
+    assert "--owlrl-wheel native-coverage/companion-originals/wheel/owlrl_turbo-*.whl" in command
+    assert "--python 3.13.16 --shacl-source" in command
