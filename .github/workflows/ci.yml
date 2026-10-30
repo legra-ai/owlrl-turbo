@@ -56,6 +56,23 @@ jobs:
           cp source-dist/* wheel-dist/* dist/ || exit 1
       - run: uv --project tools/packaging run --locked --only-group packaging twine check --strict dist/*
       - run: uv run --no-project python scripts/release_packages.py check-build
+      - uses: actions/checkout@v7
+        with:
+          repository: legra-ai/rdflib-turbo
+          ref: 2e7b4048a792f496b86cbc9ecde00d921d9d03f4
+          path: rdflib-turbo
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13.16'
+      - name: Prepare the provider's original facade and YAML cohort
+        working-directory: rdflib-turbo
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: provider-facade-cohort
+          path: ${{ runner.temp }}/candidate-facade-evidence
+          include-hidden-files: true
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: release-packages
@@ -110,9 +127,10 @@ jobs:
         with:
           name: release-packages
           path: dist
-      - name: Prepare the provider's original facade and YAML cohort
-        working-directory: rdflib-turbo
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
+      - uses: actions/download-artifact@v8
+        with:
+          name: provider-facade-cohort
+          path: ${{ runner.temp }}/candidate-facade-evidence
       - name: Verify the cohort and arrange its exact declaration
         working-directory: rdflib-turbo
         run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"

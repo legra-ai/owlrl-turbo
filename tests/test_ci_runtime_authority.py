@@ -60,7 +60,33 @@ def test_coverage_uses_one_verified_current_provider_cohort():
         assert argument in command
 
 
-def test_wheel_build_arranges_the_same_original_declaration_before_uv():
+def test_wheel_jobs_consume_one_linux_built_original_cohort():
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    build = workflow["jobs"]["build"]
+    assert build["runs-on"] == "ubuntu-latest"
+    producers = [step for step in build["steps"] if "ci_facade.py prepare " in step.get("run", "")]
+    assert len(producers) == 1
+    assert producers[0]["working-directory"] == "rdflib-turbo"
+    assert '--output "$RUNNER_TEMP/candidate-facade-evidence"' in producers[0]["run"]
+    assert "--python 3.13.16 python -B" in producers[0]["run"]
+    provider = [
+        step
+        for step in build["steps"]
+        if step.get("with", {}).get("repository") == "legra-ai/rdflib-turbo"
+    ]
+    assert len(provider) == 1
+    assert provider[0]["with"]["ref"] == PROVIDER
+    assert provider[0]["with"]["path"] == "rdflib-turbo"
+    uploads = [
+        step
+        for step in build["steps"]
+        if step.get("with", {}).get("name") == "provider-facade-cohort"
+    ]
+    assert len(uploads) == 1
+    assert uploads[0]["uses"] == "actions/upload-artifact@v7"
+    assert uploads[0]["with"]["path"] == "${{ runner.temp }}/candidate-facade-evidence"
+    assert uploads[0]["with"]["include-hidden-files"] is True
+    assert uploads[0]["with"]["if-no-files-found"] == "error"
     sequence = steps("ci.yml", "wheels")
     providers = [
         step
@@ -73,14 +99,27 @@ def test_wheel_build_arranges_the_same_original_declaration_before_uv():
         "ref": PROVIDER,
         "path": "rdflib-turbo",
     }
-    consumed = require_cohort(sequence)
-    executed = [
+    assert not any("ci_facade.py prepare " in step.get("run", "") for step in sequence)
+    downloads = [
+        i
+        for i, step in enumerate(sequence)
+        if step.get("with", {}).get("name") == "provider-facade-cohort"
+    ]
+    consumes = [
+        i for i, step in enumerate(sequence) if "ci_facade.py consume " in step.get("run", "")
+    ]
+    executions = [
         i for i, step in enumerate(sequence) if "scripts/test_wheel.py" in step.get("run", "")
     ]
-    assert len(executed) == 1 and consumed < executed[0]
-    for step in sequence:
-        if "ci_facade.py " in step.get("run", ""):
-            assert step["working-directory"] == "rdflib-turbo"
+    assert len(downloads) == len(consumes) == len(executions) == 1
+    assert downloads[0] < consumes[0] < executions[0]
+    assert sequence[downloads[0]]["uses"] == "actions/download-artifact@v8"
+    assert sequence[downloads[0]]["with"]["path"] == "${{ runner.temp }}/candidate-facade-evidence"
+    consume = sequence[consumes[0]]
+    assert consume["working-directory"] == "rdflib-turbo"
+    assert '--input "$RUNNER_TEMP/candidate-facade-evidence"' in consume["run"]
+    assert '--environment-file "$GITHUB_ENV"' in consume["run"]
+    assert "--python 3.13.16 python -B" in consume["run"]
 
 
 def test_coverage_builds_its_own_original_owl_companion_before_measurement():
