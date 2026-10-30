@@ -22,6 +22,8 @@ def require_cohort(sequence):
     ]
     assert len(prepare) == len(consume) == 1
     assert prepare[0] < consume[0]
+    assert '--output "$RUNNER_TEMP/candidate-facade-evidence"' in sequence[prepare[0]]["run"]
+    assert '--input "$RUNNER_TEMP/candidate-facade-evidence"' in sequence[consume[0]]["run"]
     for index in (*prepare, *consume):
         assert "--python 3.13.16 python -B" in sequence[index]["run"]
     assert '--environment-file "$GITHUB_ENV"' in sequence[consume[0]]["run"]

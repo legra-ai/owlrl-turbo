@@ -112,10 +112,10 @@ jobs:
           path: dist
       - name: Prepare the provider's original facade and YAML cohort
         working-directory: paired-runtime
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/provider-cohort"
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
       - name: Verify the cohort and arrange its exact declaration
         working-directory: paired-runtime
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/provider-cohort" --environment-file "$GITHUB_ENV"
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
       - run: uv run --no-project --python 3.13.16 python -B scripts/test_wheel.py
         env:
           OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/paired-runtime

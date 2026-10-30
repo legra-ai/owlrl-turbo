@@ -41,9 +41,9 @@ jobs:
           components: llvm-tools-preview
           cache: false
       - name: Prepare the provider's original facade and YAML cohort
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/provider-cohort"
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
       - name: Verify the cohort and arrange its exact declaration
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/provider-cohort" --environment-file "$GITHUB_ENV"
+        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
       - run: cargo install cargo-llvm-cov --version 0.9.1 --locked
       - run: uv run --no-project --python 3.13.16 python -B scripts/native_coverage.py --shacl-source "$SHACL_SOURCE" --shacl-wheel "$SHACL_WHEEL" --shacl-candidate-receipt "$SHACL_CANDIDATE_RECEIPT" --shacl-base-revision "$SHACL_BASE_REVISION" --yaml-authority "$YAML_AUTHORITY" --owlrl-source ../coverage-companion-owlrl
       - uses: actions/upload-artifact@v7
