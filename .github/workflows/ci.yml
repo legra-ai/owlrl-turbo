@@ -95,11 +95,11 @@ jobs:
         with:
           repository: legra-ai/rdflib-turbo
           ref: 2e7b4048a792f496b86cbc9ecde00d921d9d03f4
-          path: paired-runtime
+          path: rdflib-turbo
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
           toolchain: 1.99.1
-          cache-key: owl-provider-${{ hashFiles('paired-runtime/vendor/**') }}
+          cache-key: owl-provider-${{ hashFiles('rdflib-turbo/vendor/**') }}
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
@@ -111,14 +111,14 @@ jobs:
           name: release-packages
           path: dist
       - name: Prepare the provider's original facade and YAML cohort
-        working-directory: paired-runtime
+        working-directory: rdflib-turbo
         run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
       - name: Verify the cohort and arrange its exact declaration
-        working-directory: paired-runtime
+        working-directory: rdflib-turbo
         run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
       - run: uv run --no-project --python 3.13.16 python -B scripts/test_wheel.py
         env:
-          OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/paired-runtime
+          OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/rdflib-turbo
           CARGO_TARGET_DIR: ${{ github.workspace }}/provider-target
   minimum-runtime:
     needs: [prepare, build]

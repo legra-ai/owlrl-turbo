@@ -39,6 +39,7 @@ def test_coverage_uses_one_verified_current_provider_cohort():
     ]
     assert len(providers) == 1
     assert providers[0]["with"]["ref"] == PROVIDER
+    assert providers[0]["with"]["path"] == "rdflib-turbo"
     consumed = require_cohort(sequence)
     executions = [
         (i, step["run"])
@@ -70,7 +71,7 @@ def test_wheel_build_arranges_the_same_original_declaration_before_uv():
     assert providers[0]["with"] == {
         "repository": "legra-ai/rdflib-turbo",
         "ref": PROVIDER,
-        "path": "paired-runtime",
+        "path": "rdflib-turbo",
     }
     consumed = require_cohort(sequence)
     executed = [
@@ -79,7 +80,7 @@ def test_wheel_build_arranges_the_same_original_declaration_before_uv():
     assert len(executed) == 1 and consumed < executed[0]
     for step in sequence:
         if "ci_facade.py " in step.get("run", ""):
-            assert step["working-directory"] == "paired-runtime"
+            assert step["working-directory"] == "rdflib-turbo"
 
 
 def test_coverage_builds_its_own_original_owl_companion_before_measurement():
@@ -91,7 +92,7 @@ def test_coverage_builds_its_own_original_owl_companion_before_measurement():
     build_index, build = builds[0]
     assert build["working-directory"] == "coverage-companion-owlrl"
     assert "uv build --wheel" in build["run"]
-    assert "../coverage-runtime/native-coverage/companion-originals/source/*.tar.gz" in build["run"]
+    assert "../rdflib-turbo/native-coverage/companion-originals/source/*.tar.gz" in build["run"]
     executions = [
         (i, step["run"])
         for i, step in enumerate(sequence)

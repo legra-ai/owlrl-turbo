@@ -14,7 +14,7 @@ permissions:
 defaults:
   run:
     shell: bash {0}
-    working-directory: coverage-runtime
+    working-directory: rdflib-turbo
 jobs:
   coverage:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
         with:
           repository: legra-ai/rdflib-turbo
           ref: 2e7b4048a792f496b86cbc9ecde00d921d9d03f4
-          path: coverage-runtime
+          path: rdflib-turbo
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13.16'
@@ -47,13 +47,13 @@ jobs:
       - name: Build this OWL companion from its original source archive
         working-directory: coverage-companion-owlrl
         run: |
-          uv build --sdist --out-dir ../coverage-runtime/native-coverage/companion-originals/source || exit 1
-          uv build --wheel --out-dir ../coverage-runtime/native-coverage/companion-originals/wheel ../coverage-runtime/native-coverage/companion-originals/source/*.tar.gz || exit 1
+          uv build --sdist --out-dir ../rdflib-turbo/native-coverage/companion-originals/source || exit 1
+          uv build --wheel --out-dir ../rdflib-turbo/native-coverage/companion-originals/wheel ../rdflib-turbo/native-coverage/companion-originals/source/*.tar.gz || exit 1
       - run: cargo install cargo-llvm-cov --version 0.9.1 --locked
       - run: uv run --no-project --python 3.13.16 python -B scripts/native_coverage.py --python 3.13.16 --shacl-source "$SHACL_SOURCE" --shacl-wheel "$SHACL_WHEEL" --shacl-candidate-receipt "$SHACL_CANDIDATE_RECEIPT" --shacl-base-revision "$SHACL_BASE_REVISION" --yaml-authority "$YAML_AUTHORITY" --owlrl-source ../coverage-companion-owlrl --owlrl-wheel native-coverage/companion-originals/wheel/owlrl_turbo-*.whl
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: native-rust-coverage
-          path: coverage-runtime/native-coverage/
+          path: rdflib-turbo/native-coverage/
           if-no-files-found: error
