@@ -12,12 +12,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
-def make_wheel(root, name, requires=None):
-    filename = f"{name}-0.1.0a2-py3-none-any.whl"
-    metadata = f"Metadata-Version: 2.4\nName: {name.replace('_', '-')}\nVersion: 0.1.0a2\n"
+def make_wheel(root, name, requires=None, *, version="0.1.0a2", test_requires=None):
+    filename = f"{name}-{version}-py3-none-any.whl"
+    metadata = f"Metadata-Version: 2.4\nName: {name.replace('_', '-')}\nVersion: {version}\n"
     if requires:
         metadata += f"Requires-Dist: {requires}\n"
-    dist_info = f"{name}-0.1.0a2.dist-info"
+    if test_requires:
+        metadata += f'Provides-Extra: test\nRequires-Dist: {test_requires}; extra == "test"\n'
+    dist_info = f"{name}-{version}.dist-info"
     with zipfile.ZipFile(root / filename, "w") as archive:
         archive.writestr(f"{dist_info}/METADATA", metadata + "\n")
         archive.writestr(
@@ -199,3 +201,70 @@ def test_provider_build_uses_selected_interpreter_and_unique_artifact(tmp_path, 
     wheel = installer.build_runtime_wheel(source, "3.14", output)
     assert wheel.name == "rdflib_turbo-0.2.0a6-cp314-cp314-platform.whl"
     assert len(observed) == 1
+
+
+def test_consumer_test_extra_does_not_select_provider_test_dependencies(tmp_path, monkeypatch):
+    """Provider test pins must not constrain an independently released consumer."""
+    monkeypatch.setenv("UV_NO_INDEX", "1")
+    monkeypatch.setenv("UV_FIND_LINKS", str(tmp_path))
+    marker = make_wheel(tmp_path, "consumer_test_marker")
+    consumer = make_wheel(
+        tmp_path,
+        "owlrl_turbo",
+        "rdflib-turbo==0.2.0a20",
+        version="0.2.0a1",
+        test_requires="consumer-test-marker==0.1.0a2",
+    )
+    runtime = make_wheel(
+        tmp_path, "rdflib_turbo", version="0.2.0a20", test_requires="owlrl-turbo==0.1.0a3"
+    )
+    original = {
+        str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in (marker, consumer, runtime)
+    }
+    project = tmp_path / "project"
+    subprocess.run(
+        [
+            "uv",
+            "init",
+            "--bare",
+            "--no-workspace",
+            "--vcs",
+            "none",
+            "--python",
+            sys.executable,
+            str(project),
+        ],
+        cwd=tmp_path,
+        check=True,
+    )
+    spec = importlib.util.spec_from_file_location(
+        "wheel_install", Path(__file__).parents[1] / "scripts/wheel_install.py"
+    )
+    installer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(installer)
+    installer.install_wheel(project, consumer, runtime_wheel=runtime)
+    observed = subprocess.check_output(
+        [
+            "uv",
+            "run",
+            "--project",
+            str(project),
+            "--locked",
+            "--no-sync",
+            "python",
+            "-I",
+            "-B",
+            "-c",
+            "import importlib.metadata as m,json; print(json.dumps([m.version(n) for n in ['owlrl-turbo','rdflib-turbo','consumer-test-marker']]))",
+        ],
+        cwd=tmp_path,
+        text=True,
+    )
+    assert json.loads(observed) == ["0.2.0a1", "0.2.0a20", "0.1.0a2"]
+    manifest = (project / "pyproject.toml").read_text()
+    assert '"owlrl-turbo[test]"' in manifest
+    assert '"rdflib-turbo"' in manifest
+    assert "rdflib-turbo[test]" not in manifest
+    assert {
+        str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in (marker, consumer, runtime)
+    } == original
