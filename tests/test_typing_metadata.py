@@ -47,6 +47,8 @@ def test_runtime_requirement_excludes_releases_without_native_closure_apis():
         for item in requires("owlrl-turbo")
         if Requirement(item).name == "rdflib-turbo"
     )
-    assert requirement.specifier.contains("0.2.0a7", prereleases=True)
+    assert requirement.specifier.contains("0.2.0a20", prereleases=True)
+    assert not requirement.specifier.contains("0.2.0a19", prereleases=True)
+    assert not requirement.specifier.contains("0.2.0a7", prereleases=True)
     assert not requirement.specifier.contains("0.2.0a6", prereleases=True)
     assert not requirement.specifier.contains("0.2.0a5", prereleases=True)
