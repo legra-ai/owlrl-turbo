@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "owlrl-turbo"
-version = "0.1.0a3"
+version = "0.2.0a1"
 description = "Native RDFS and OWL-RL inference using the rdflib-turbo runtime"
 readme = "README.md"
 requires-python = ">=3.11"

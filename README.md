@@ -171,13 +171,14 @@ native Dataset inputs retain their handle. Both `axiomatic_triples` and
 `datatype_axioms` are forwarded to the native runtime by class and functional
 entry points. `improved_datatypes=False` is accepted for the built-in semantics;
 closure execution never changes RDFLib process-global converters. Custom rule
-classes, process-global datatype switches, separate plain Graph
-destinations and the newer Store-backed Graph inference adapter are not yet
-implemented and raise explicit errors. This remains a limited compatibility
+classes and process-global datatype switches are not yet implemented and raise
+explicit errors. This remains a limited compatibility
 facade with the standard-RDF/hasKey boundaries described in
 [ADR 0005](docs/adr/0005-deductive-closure-facade.md).
 
 The axiom options, diagnostic history and native copy/closure APIs require
-published `rdflib-turbo>=0.2.0a7`. CI installs the exact minimum from the public
+published `rdflib-turbo>=0.2.0a20`. Distinct ordinary Graph source and destination
+endpoints must share one backing Store; unrelated contexts are not captured.
+CI installs the exact minimum from the public
 registry and tests both RDFLib closure and independent native Graph expansion.
 Candidate-provider testing uses a separate explicit exact-wheel override.

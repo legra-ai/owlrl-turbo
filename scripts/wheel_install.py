@@ -10,8 +10,9 @@ def install_wheel(project, wheel, *, test_extra=True, runtime_wheel=None, runtim
     # A just-published runtime must invalidate uv's cached empty index response.
     arguments = ["uv", "add", "--project", str(project), "--no-sync", "--refresh"]
     if test_extra:
-        arguments.extend(["--extra", "test"])
-    arguments.append(str(wheel))
+        arguments.append(f"owlrl-turbo[test] @ {Path(wheel).resolve().as_uri()}")
+    else:
+        arguments.append(str(wheel))
     if runtime_wheel is not None:
         arguments.append(str(runtime_wheel))
     if runtime_requirement is not None:
