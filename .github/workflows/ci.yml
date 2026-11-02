@@ -27,7 +27,7 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       revision: ${{ steps.release.outputs.revision }}
     steps:
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - uses: actions/checkout@v7
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - name: Build wheel from the source archive
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - run: uv run --locked --extra test ruff check src tests scripts
@@ -120,7 +120,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - uses: actions/download-artifact@v8
@@ -145,7 +145,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - uses: actions/setup-python@v7
@@ -163,7 +163,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - name: Require all release checks
@@ -191,7 +191,7 @@ jobs:
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       RELEASE_REVISION: ${{ needs.prepare.outputs.revision }}
     steps:
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - uses: actions/checkout@v7
@@ -240,7 +240,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.5"
       - uses: actions/checkout@v7
