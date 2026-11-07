@@ -31,7 +31,7 @@ def require_cohort(sequence):
     assert '--output "$RUNNER_TEMP/candidate-facade-evidence"' in sequence[prepare[0]]["run"]
     assert '--input "$RUNNER_TEMP/candidate-facade-evidence"' in sequence[consume[0]]["run"]
     for index in (*prepare, *consume):
-        assert "--python 3.13.16 python -B" in sequence[index]["run"]
+        assert "--python 3.13.18 python -B" in sequence[index]["run"]
     assert '--environment-file "$GITHUB_ENV"' in sequence[consume[0]]["run"]
     return consume[0]
 
@@ -74,7 +74,7 @@ def test_wheel_jobs_consume_one_linux_built_original_cohort():
     assert len(producers) == 1
     assert producers[0]["working-directory"] == "rdflib-turbo"
     assert '--output "$RUNNER_TEMP/candidate-facade-evidence"' in producers[0]["run"]
-    assert "--python 3.13.16 python -B" in producers[0]["run"]
+    assert "--python 3.13.18 python -B" in producers[0]["run"]
     provider = [
         step
         for step in build["steps"]
@@ -125,7 +125,7 @@ def test_wheel_jobs_consume_one_linux_built_original_cohort():
     assert consume["working-directory"] == "rdflib-turbo"
     assert '--input "$RUNNER_TEMP/candidate-facade-evidence"' in consume["run"]
     assert '--environment-file "$GITHUB_ENV"' in consume["run"]
-    assert "--python 3.13.16 python -B" in consume["run"]
+    assert "--python 3.13.18 python -B" in consume["run"]
 
 
 def test_coverage_builds_its_own_original_owl_companion_before_measurement():
@@ -147,4 +147,4 @@ def test_coverage_builds_its_own_original_owl_companion_before_measurement():
     execution_index, command = executions[0]
     assert build_index < execution_index
     assert "--owlrl-wheel native-coverage/companion-originals/wheel/owlrl_turbo-*.whl" in command
-    assert "--python 3.13.16 --shacl-source" in command
+    assert "--python 3.13.18 --shacl-source" in command

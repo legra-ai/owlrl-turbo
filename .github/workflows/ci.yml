@@ -63,10 +63,10 @@ jobs:
           path: rdflib-turbo
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.13.16'
+          python-version: '3.13.18'
       - name: Prepare the provider's original facade and YAML cohort
         working-directory: rdflib-turbo
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
+        run: uv run --no-project --python 3.13.18 python -B scripts/ci_facade.py prepare --output "$RUNNER_TEMP/candidate-facade-evidence"
       - uses: actions/upload-artifact@v7
         with:
           name: provider-facade-cohort
@@ -133,8 +133,8 @@ jobs:
           path: ${{ runner.temp }}/candidate-facade-evidence
       - name: Verify the cohort and arrange its exact declaration
         working-directory: rdflib-turbo
-        run: uv run --no-project --python 3.13.16 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
-      - run: uv run --no-project --python 3.13.16 python -B scripts/test_wheel.py
+        run: uv run --no-project --python 3.13.18 python -B scripts/ci_facade.py consume --input "$RUNNER_TEMP/candidate-facade-evidence" --environment-file "$GITHUB_ENV"
+      - run: uv run --no-project --python 3.13.18 python -B scripts/test_wheel.py
         env:
           OWLRL_TEST_RUNTIME_SOURCE: ${{ github.workspace }}/rdflib-turbo
           CARGO_TARGET_DIR: ${{ github.workspace }}/provider-target
