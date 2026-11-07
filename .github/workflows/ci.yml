@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -47,7 +47,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - name: Build wheel from the source archive
         run: |
           uv build --sdist --out-dir source-dist || exit 1
@@ -93,7 +93,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - run: uv run --locked --extra test ruff check src tests scripts
       - run: uv run --locked --extra test ruff format --check src tests scripts
   wheels:
@@ -122,7 +122,7 @@ jobs:
           python-version: '3.13'
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - uses: actions/download-artifact@v8
         with:
           name: release-packages
@@ -147,7 +147,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.revision }}
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
@@ -165,7 +165,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - name: Require all release checks
         env:
           RESULTS: ${{ toJSON(needs) }}
@@ -193,7 +193,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
@@ -242,7 +242,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
-          version: "0.13.5"
+          version: "0.13.7"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.revision }}
