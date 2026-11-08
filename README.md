@@ -110,7 +110,7 @@ Companion turbo projects: [pyshacl-turbo](https://github.com/legra-ai/pyshacl-tu
 [rdflib-turbo](https://github.com/legra-ai/rdflib-turbo).
 
 ```sh
-uv add owlrl-turbo==0.2.0a1
+uv add owlrl-turbo==0.2.0a2
 ```
 
 ```python

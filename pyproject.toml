@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling>=1.32.3,<2"]
+requires = ["hatchling>=1.33.0,<2"]
 build-backend = "hatchling.build"
 
 [project]
 name = "owlrl-turbo"
-version = "0.2.0a1"
+version = "0.2.0a2"
 description = "Native RDFS and OWL-RL inference using the rdflib-turbo runtime"
 readme = "README.md"
 requires-python = ">=3.11"

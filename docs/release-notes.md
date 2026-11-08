@@ -1,3 +1,12 @@
+owlrl-turbo 0.2.0a2: maintenance release.
+
+Refresh the locked companion and build/test tools, including uv 0.13.7,
+Hatchling 1.33.0, Ruff 0.17.4 and coverage 7.17.2. The native CI authority
+uses the upgraded runtime and its exact uv cohort. The public inference API
+and minimum rdflib-turbo 0.2.0a20 requirement are unchanged.
+
+Previous 0.2.0a1 release:
+
 owlrl-turbo 0.2.0a1: limited compatibility alpha.
 
 Adds the `DeductiveClosure` interface and built-in RDFS, OWL-RL and combined
