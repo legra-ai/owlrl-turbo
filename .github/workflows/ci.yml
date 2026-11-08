@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: 86271be01ef1c21318ddd75199c36135296631a2
+          ref: 6bcdae3c46a95bd58c4c27cfb3215efc1fa78463
           path: rdflib-turbo
       - uses: actions/setup-python@v7
         with:
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: legra-ai/rdflib-turbo
-          ref: 86271be01ef1c21318ddd75199c36135296631a2
+          ref: 6bcdae3c46a95bd58c4c27cfb3215efc1fa78463
           path: rdflib-turbo
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
