@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-PROVIDER = "6bcdae3c46a95bd58c4c27cfb3215efc1fa78463"
+PROVIDER = "68d052e9303e9ead9db5fe17e30d5aa0cbfd0438"
 
 
 def test_runtime_floor_requires_the_published_scoped_capture_provider():
