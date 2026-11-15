@@ -18,6 +18,8 @@ with tempfile.TemporaryDirectory() as runtime_directory:
         if runtime is not None
         else None
     )
+    if runtime_wheel is not None and runtime_wheel.name.rsplit("-", 3)[-2] != "abi3":
+        raise ValueError("Shared interpreter acceptance requires an ABI3 provider wheel")
     for version in ("3.11", "3.14"):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory) / "project"

@@ -6,8 +6,11 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 
-def test_both_interpreters_install_one_identical_provider_wheel(tmp_path, monkeypatch):
+
+@pytest.mark.parametrize("abi", ["abi3", "cp311"])
+def test_both_interpreters_install_one_identical_provider_wheel(tmp_path, monkeypatch, abi):
     root = Path(__file__).resolve().parents[1]
     script = tmp_path / "scripts/test_wheel.py"
     script.parent.mkdir()
@@ -25,7 +28,7 @@ def test_both_interpreters_install_one_identical_provider_wheel(tmp_path, monkey
     def build(provider, version, output):
         builds.append((provider, version))
         output.mkdir(parents=True)
-        wheel = output / "rdflib_turbo-0.2.0a39-cp311-abi3-platform.whl"
+        wheel = output / f"rdflib_turbo-0.2.0a39-cp311-{abi}-platform.whl"
         wheel.write_bytes(b"original ABI3 archive")
         return wheel
 
@@ -46,6 +49,11 @@ def test_both_interpreters_install_one_identical_provider_wheel(tmp_path, monkey
         SimpleNamespace(build_runtime_wheel=build, install_wheel=install),
     )
     monkeypatch.setattr("subprocess.run", run)
+    if abi != "abi3":
+        with pytest.raises(ValueError, match="ABI3"):
+            runpy.run_path(str(script))
+        assert not installs
+        return
     runpy.run_path(str(script))
     assert builds == [(str(source), "3.11")]
     assert interpreters == ["3.11", "3.14"]
