@@ -36,6 +36,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
+      - run: uv run --no-project python scripts/test_dependabot_policy.py
       - id: release
         run: uv run --no-project python scripts/prepare_release.py
   build:
