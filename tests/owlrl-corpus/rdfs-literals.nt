@@ -1,0 +1,3 @@
+<urn:x> <urn:p> "plain" .
+<urn:x> <urn:q> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:x> <urn:r> "hallo"@nl .

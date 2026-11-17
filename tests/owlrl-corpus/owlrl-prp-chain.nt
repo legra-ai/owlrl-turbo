@@ -1,0 +1,7 @@
+<urn:uncle> <http://www.w3.org/2002/07/owl#propertyChainAxiom> <urn:l1> .
+<urn:l1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:parent> .
+<urn:l1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <urn:l2> .
+<urn:l2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:brother> .
+<urn:l2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
+<urn:x> <urn:parent> <urn:y> .
+<urn:y> <urn:brother> <urn:z> .

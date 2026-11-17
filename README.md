@@ -173,6 +173,32 @@ builds its extension from source.
 
 MIT OR Apache-2.0. Copyright 2026 DataRoad Inc, Delaware, USA, trading as Legra.
 
+## Reference closure parity
+
+Each OWL 2 RL rule family (equality, property, class, class-axiom, schema and
+datatype rules, plus inconsistency cases) and the RDFS rules have a small
+N-Triples fixture in `tests/owlrl-corpus/`. Their frozen reference closures in
+`tests/owlrl-goldens/` were produced offline by the exactly pinned owlrl in
+`tools/owlrl-goldens/`, so the comparison never depends on the installed owlrl.
+Every statement in a fixture's symmetric difference must match one kind in the
+closed [divergence ledger](tests/divergences.toml): an unlisted kind fails, and
+so does a ledgered kind that no longer occurs. A separate drift test checks that
+the installed owlrl still reproduces the goldens.
+
+<!-- owlrl-divergence-ledger:start -->
+![owlrl reference closures](https://img.shields.io/badge/owlrl%20goldens-22%2F24%20exact-yellow?style=flat)
+
+**22 of 24 reference fixtures match owlrl 7.6.2 exactly; 2 ledgered differences remain.**
+
+| Kind | Rule | Status | Fixtures |
+| --- | --- | --- | --- |
+| `haskey-all-properties` | prp-key | intentional | `owlrl-prp-haskey` |
+| `language-tag-case` | rdfs4 | gap | `rdfs-language-tags` |
+<!-- owlrl-divergence-ledger:end -->
+
+Regenerate the goldens with `gmake goldens` and this summary with
+`gmake divergence-readme`.
+
 ## Development
 
 Development uses native uv project commands and the committed `uv.lock`.

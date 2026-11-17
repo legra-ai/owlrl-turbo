@@ -1,0 +1,3 @@
+<urn:p> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <urn:q> .
+<urn:q> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <urn:r> .
+<urn:x> <urn:p> <urn:y> .

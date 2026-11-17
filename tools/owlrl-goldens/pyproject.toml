@@ -1,0 +1,10 @@
+# Regeneration-only environment for tests/owlrl-goldens. The frozen reference
+# closures depend on exactly these versions, never on the test environment's owlrl.
+[project]
+name = "owlrl-golden-tools"
+version = "0.1.0"
+requires-python = ">=3.13.16"
+dependencies = [
+    "owlrl==7.6.2",
+    "rdflib==7.6.0",
+]
