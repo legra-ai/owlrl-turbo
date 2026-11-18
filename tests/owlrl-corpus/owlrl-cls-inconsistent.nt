@@ -1,0 +1,7 @@
+<urn:x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Nothing> .
+<urn:A> <http://www.w3.org/2002/07/owl#complementOf> <urn:B> .
+<urn:y> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:A> .
+<urn:y> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:B> .
+<urn:P> <http://www.w3.org/2002/07/owl#disjointWith> <urn:Q> .
+<urn:z> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:P> .
+<urn:z> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:Q> .

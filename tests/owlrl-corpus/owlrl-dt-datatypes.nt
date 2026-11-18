@@ -1,0 +1,4 @@
+<urn:x> <urn:p> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:x> <urn:q> "07"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:x> <urn:r> "abc"^^<http://www.w3.org/2001/XMLSchema#string> .
+<urn:x> <urn:s> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .

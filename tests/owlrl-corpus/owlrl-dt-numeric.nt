@@ -1,0 +1,6 @@
+<urn:x> <urn:p> "1.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+<urn:x> <urn:p> "1"^^<http://www.w3.org/2001/XMLSchema#int> .
+<urn:x> <urn:q> "1.5E0"^^<http://www.w3.org/2001/XMLSchema#double> .
+<urn:x> <urn:r> "2026-11-17T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<urn:x> <urn:s> "x"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral> .
+<urn:x> <urn:t> "<a/>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> .

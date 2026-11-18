@@ -1,0 +1,6 @@
+<urn:f> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<urn:g> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> .
+<urn:a> <urn:f> <urn:b1> .
+<urn:a> <urn:f> <urn:b2> .
+<urn:c1> <urn:g> <urn:d> .
+<urn:c2> <urn:g> <urn:d> .

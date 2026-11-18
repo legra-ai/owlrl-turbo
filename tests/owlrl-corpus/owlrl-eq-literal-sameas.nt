@@ -1,0 +1,5 @@
+<urn:f> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> .
+<urn:x> <urn:f> "a" .
+<urn:x> <urn:f> "b" .
+<urn:x> <urn:g> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:x> <urn:g> "01"^^<http://www.w3.org/2001/XMLSchema#integer> .

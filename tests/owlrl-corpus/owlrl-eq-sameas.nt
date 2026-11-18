@@ -1,0 +1,4 @@
+<urn:a> <http://www.w3.org/2002/07/owl#sameAs> <urn:b> .
+<urn:b> <http://www.w3.org/2002/07/owl#sameAs> <urn:c> .
+<urn:a> <urn:p> <urn:o> .
+<urn:s> <urn:q> <urn:c> .

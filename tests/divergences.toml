@@ -1,0 +1,56 @@
+# Closed divergence ledger between owlrl-turbo and the frozen owlrl reference
+# closures in tests/owlrl-goldens. tests/test_owlrl_divergence_ledger.py classifies
+# every statement in each fixture's symmetric difference and requires the observed
+# (kind, fixture) pairs to equal the `divergent` entries below exactly: an
+# unlisted kind fails, and so does a listed kind or fixture that no longer occurs.
+#
+# status = "intentional": a deliberate, ADR-recorded departure from the reference.
+# status = "gap": an unratified difference that remains to be resolved.
+# status = "converged": a difference described in ADR prose that the corpus shows
+# no longer occurs; its classifier must observe nothing in any fixture.
+
+[[divergence]]
+kind = "haskey-all-properties"
+status = "intentional"
+rule = "prp-key"
+spec = "https://www.w3.org/TR/owl2-profiles/#Reasoning_in_OWL_2_RL_and_RDF_Graphs_using_Rules"
+adr = "docs/adr/0001-inference-contract.md"
+fixtures = ["owlrl-prp-haskey"]
+summary = """Native owl:hasKey requires every key property to share a value. The \
+pinned reference compares the key list incompletely, so it equates individuals \
+that agree on only the first key property and then copies their facts through \
+owl:sameAs replacement."""
+
+[[divergence]]
+kind = "language-tag-case"
+status = "gap"
+rule = "rdfs4"
+spec = "https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal"
+adr = "https://github.com/legra-ai/rdflib-turbo/blob/main/docs/adr/0019-borrow-caller-pinned-read-filters.md"
+fixtures = ["rdfs-language-tags"]
+summary = """Inferred statements about a language-tagged literal carry the native \
+store's lowercase-normalized tag, while the reference retains the input spelling. \
+The input statement keeps its original tag, so the closure holds two literal \
+terms that differ only in tag case."""
+
+[[divergence]]
+kind = "generalized-rdf-exclusion"
+status = "converged"
+rule = "rdfs4"
+spec = "https://www.w3.org/TR/rdf11-mt/#rdfs-entailment"
+adr = "docs/adr/0001-inference-contract.md"
+fixtures = []
+summary = """ADR 0001 excluded generalized output such as literal subjects. \
+rdflib-turbo ADR 0065 made generalized terms first-class, and turbo now retains \
+the reference's literal-subject and literal sameAs statements."""
+
+[[divergence]]
+kind = "datatype-value"
+status = "converged"
+rule = "dt-type2"
+spec = "https://www.w3.org/TR/owl2-profiles/#Reasoning_in_OWL_2_RL_and_RDF_Graphs_using_Rules"
+adr = "docs/adr/0007-native-inference-diagnostics.md"
+fixtures = []
+summary = """Typed-literal typing, value equality and ill-typed literal diagnostics \
+match the reference on the datatype fixtures. ADR 0007's caller Decimal status \
+flag publication is process state, not closure content, and is outside this ledger."""

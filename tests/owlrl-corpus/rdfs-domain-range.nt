@@ -1,0 +1,3 @@
+<urn:p> <http://www.w3.org/2000/01/rdf-schema#domain> <urn:C> .
+<urn:p> <http://www.w3.org/2000/01/rdf-schema#range> <urn:D> .
+<urn:x> <urn:p> <urn:y> .

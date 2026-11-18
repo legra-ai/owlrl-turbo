@@ -22,3 +22,10 @@ test-rust-coverage:
 
 benchmark-companions:
 	$(MAKE) -C ../pyshacl-turbo benchmark-companions
+
+.PHONY: goldens divergence-readme
+goldens:
+	uv run --project tools/owlrl-goldens --locked python scripts/regenerate_owlrl_goldens.py
+
+divergence-readme:
+	uv run --locked --extra test python tests/owlrl_reference.py
