@@ -954,15 +954,15 @@ wheels = [
 
 [[package]]
 name = "pyshacl-turbo"
-version = "0.10.1"
+version = "0.10.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "rdflib", extra = ["html"] },
     { name = "rdflib-turbo" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/d3/424cb13864214d98beb3b7366141e5b6442c773473d9e698c97b2dc08148/pyshacl_turbo-0.10.1.tar.gz", hash = "sha256:ad8b40bfdd9379eb2ac21a9fee5e86e7c9a99632c715ece77931dfbcff5577e8", size = 1384595, upload-time = "2026-11-16T01:59:16.341Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/d7/67d7c86e8c3f62526f653151bdb4a85376276b0de3ba9a29c3691c7d8d62/pyshacl_turbo-0.10.2.tar.gz", hash = "sha256:b3f325965d62a815675c147ada5865e6e7d7ef9a5bdd246c528ea2204140d8d3", size = 1384595, upload-time = "2026-11-16T14:35:43.815Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/bc/846d0dd2394fb51f3c90b419d2bcd4a09f1ce0e1326363abc531aa796929/pyshacl_turbo-0.10.1-py3-none-any.whl", hash = "sha256:2f2c667dc4004f4db48cb6da060d0d1a13b134ac5890eee4ad0251eef5e5c50f", size = 61335, upload-time = "2026-11-16T01:59:14.677Z" },
+    { url = "https://files.pythonhosted.org/packages/a3/ec/db6872314d8f6b3829015e85c1f65c59a512a591440434814f705c5f9ab7/pyshacl_turbo-0.10.2-py3-none-any.whl", hash = "sha256:9d3778ecfa56c7fe60c2bb061994b84ccf789b56ab7fa1df7680580e66f83143", size = 61336, upload-time = "2026-11-16T14:35:42.053Z" },
 ]
 
 [[package]]
