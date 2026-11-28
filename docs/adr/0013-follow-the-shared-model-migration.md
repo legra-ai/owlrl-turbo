@@ -1,9 +1,10 @@
 # ADR 0013: Follow the provider's move onto the shared model crates
 
-Status: Proposed; design only, see rdflib-turbo ADR 0079
+Status: Accepted; the owner approved this record and rdflib-turbo ADR 0079 on
+2026-11-28
 
 owlrl-turbo has no Rust of its own. Its reasoner is rdflib-turbo's native
-extension (ADR 0001, ADR 0008). rdflib-turbo ADR 0079 proposes moving that
+extension (ADR 0001, ADR 0008). rdflib-turbo ADR 0079 moves that
 extension's terms onto rdf-structural-model and every OWL-RL and RDFS rule
 definition onto rdf-reasoning, while the provider keeps its storage, its
 fixed-point scheduler and its tuned kernels until a shared executor matches
